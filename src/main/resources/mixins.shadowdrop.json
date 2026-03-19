@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "net.terrunic.shadowdrop.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "refmap": "shadowdrop.refmap.json",
+  "client": [
+    "GuiGraphicsMixin"
+  ],
+  "mixins": [
+    "GuiGraphicsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
