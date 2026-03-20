@@ -1,9 +1,8 @@
-# Shadow Drop
-> A Minecraft mod that adds drop shadows to items in GUIs.
-
 <p align="right">
 <img width="380" height="224" alt="Shadow Drop" src="https://github.com/user-attachments/assets/3c5ec8a5-b35e-4f08-90c8-b6a27a3efa61" />
 </p>
+
+> **Shadow Drop**: a Minecraft mod that adds drop shadows to items in GUIs.
 
 A subtle client-side mod that adds drop shadows beneath items in GUIs, adding depth to the hotbar, inventory screens, advancements, etc. By default, shadows are translucent, offset by one pixel down/right, and cropped to fit within item slots.
 
