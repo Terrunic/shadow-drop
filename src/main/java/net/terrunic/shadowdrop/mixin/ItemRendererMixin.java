@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.terrunic.shadowdrop.CachedPixel;
+import net.terrunic.shadowdrop.ShadowDrop;
 import net.terrunic.shadowdrop.ShadowDropConfig;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -58,6 +59,13 @@ public class ItemRendererMixin
     private void shadowdrop$renderShadow(ItemStack pItemStack, ItemDisplayContext pDisplayContext, boolean pLeftHand, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, int pCombinedOverlay, BakedModel pModel, CallbackInfo ci)
     {
         if (pItemStack.isEmpty() || pDisplayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled.get()) return;
+
+        // Refresh pixel cache if remotely called to
+        if (ShadowDrop.shouldRefresh)
+        {
+            ShadowDrop.shouldRefresh = false;
+            shadowdrop$cachedPixels.clear();
+        }
 
         // Get rendering context
         Matrix4f itemMatrix = new Matrix4f(pPoseStack.last().pose());
