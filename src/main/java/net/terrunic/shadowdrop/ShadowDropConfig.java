@@ -1,8 +1,8 @@
 package net.terrunic.shadowdrop;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 import java.util.Arrays;
 import java.util.List;
@@ -10,42 +10,42 @@ import java.util.List;
 // Mod config
 public class ShadowDropConfig
 {
-    public static final ForgeConfigSpec CLIENT_SPEC;
+    public static final ModConfigSpec CLIENT_SPEC;
     public static final Client CLIENT;
 
     static
     {
-        Pair<Client, ForgeConfigSpec> clientPair = new ForgeConfigSpec.Builder().configure(Client::new);
+        Pair<Client, ModConfigSpec> clientPair = new ModConfigSpec.Builder().configure(Client::new);
         CLIENT = clientPair.getLeft();
         CLIENT_SPEC = clientPair.getRight();
     }
 
-    public static void register()
+    public static void register(ModContainer container)
     {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);
     }
 
     // Client-side config
     public static class Client
     {
         // Config values
-        public final ForgeConfigSpec.BooleanValue modEnabled;
-        public final ForgeConfigSpec.ConfigValue<String> shadowColor;
-        public final ForgeConfigSpec.IntValue shadowAlpha;
-        public final ForgeConfigSpec.IntValue shadowXOffset;
-        public final ForgeConfigSpec.IntValue shadowYOffset;
-        public final ForgeConfigSpec.IntValue shadowZOffset;
-        public final ForgeConfigSpec.BooleanValue shadowsAlways;
-        public final ForgeConfigSpec.BooleanValue shadowsInSlots;
-        public final ForgeConfigSpec.BooleanValue shadowsInHotbar;
-        public final ForgeConfigSpec.BooleanValue shadowsInCursor;
-        public final ForgeConfigSpec.BooleanValue cropToSlots;
-        public final ForgeConfigSpec.BooleanValue cropToHotbar;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBrColors;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> translucentItems;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> transparentItems;
+        public final ModConfigSpec.BooleanValue modEnabled;
+        public final ModConfigSpec.ConfigValue<String> shadowColor;
+        public final ModConfigSpec.IntValue shadowAlpha;
+        public final ModConfigSpec.IntValue shadowXOffset;
+        public final ModConfigSpec.IntValue shadowYOffset;
+        public final ModConfigSpec.IntValue shadowZOffset;
+        public final ModConfigSpec.BooleanValue shadowsAlways;
+        public final ModConfigSpec.BooleanValue shadowsInSlots;
+        public final ModConfigSpec.BooleanValue shadowsInHotbar;
+        public final ModConfigSpec.BooleanValue shadowsInCursor;
+        public final ModConfigSpec.BooleanValue cropToSlots;
+        public final ModConfigSpec.BooleanValue cropToHotbar;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> slotBrColors;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> translucentItems;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> transparentItems;
 
-        public Client(ForgeConfigSpec.Builder builder)
+        public Client(ModConfigSpec.Builder builder)
         {
             builder.comment(" Shadow Drop: Client Configuration")
                 .comment(" (note: for EMI compatibility, set 'use-batched-renderer' to 'false' in EMI config)")
@@ -123,24 +123,27 @@ public class ShadowDropConfig
                 .comment(" RGB hex colors for detection of visual slots (e.g. \"#FFFFFF\")")
                 .comment(" This color is searched for in the bottom-right corner pixel wherever an item is rendered")
                 .comment(" Adjust for compatibility with resource packs or modded GUIs where this pixel is not #FFFFFF")
-                .defineList("slotBrColors",
-                    List.of("#FFFFFF"),
+                .defineListAllowEmpty("slotBrColors",
+                    () -> List.of("#FFFFFF"),
+                    () -> "#FFFFFF",
                     obj -> obj instanceof String && ((String) obj).matches("^#[0-9A-Fa-f]{6}$"));
 
             builder.pop();
             builder.push("exceptions");
 
             translucentItems = builder
-                .comment(" Items with half shadow alpha (e.g. \"#forge:glass\", \"minecraft:glass\")")
-                .defineList("translucentItems",
-                    Arrays.asList("#forge:glass", "#forge:glass_panes", "minecraft:beacon"),
+                .comment(" Items with half shadow alpha (e.g. \"#c:glass_blocks\", \"minecraft:glass\")")
+                .defineListAllowEmpty("translucentItems",
+                    () -> Arrays.asList("#c:glass_blocks", "#c:glass_panes", "minecraft:beacon"),
+                    () -> "",
                     obj -> obj instanceof String);
 
             transparentItems = builder
                 .comment("")
-                .comment(" Items with no shadow (e.g. \"#forge:glass\", \"minecraft:glass\")")
-                .defineList("transparentItems",
-                    List.of(),
+                .comment(" Items with no shadow (e.g. \"#c:glass_blocks\", \"minecraft:glass\")")
+                .defineListAllowEmpty("transparentItems",
+                    List::of,
+                    () -> "",
                     obj -> obj instanceof String);
 
             builder.pop();

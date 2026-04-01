@@ -1,15 +1,15 @@
 package net.terrunic.shadowdrop;
 
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 
 // Event subscriber to refresh drop shadows on specific events
-@Mod.EventBusSubscriber(modid = ShadowDrop.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ShadowDrop.MOD_ID)
 public class ScreenEventHandler
 {
     @SubscribeEvent
-    public static void onScreenInit(ScreenEvent.Init event)
+    public static void onScreenInit(ScreenEvent.Init.Pre event)
     {
         ShadowDrop.shouldRefresh = true;
     }

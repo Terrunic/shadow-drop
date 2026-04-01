@@ -8,14 +8,15 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.terrunic.shadowdrop.CachedPixel;
+import net.terrunic.shadowdrop.ShadowDrop;
 import net.terrunic.shadowdrop.ShadowDropConfig;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -58,6 +59,13 @@ public class ItemRendererMixin
     private void shadowdrop$renderShadow(ItemStack pItemStack, ItemDisplayContext pDisplayContext, boolean pLeftHand, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, int pCombinedOverlay, BakedModel pModel, CallbackInfo ci)
     {
         if (pItemStack.isEmpty() || pDisplayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled.get()) return;
+
+        // Refresh pixel cache if remotely called to
+        if (ShadowDrop.shouldRefresh)
+        {
+            ShadowDrop.shouldRefresh = false;
+            shadowdrop$cachedPixels.clear();
+        }
 
         // Get rendering context
         Matrix4f itemMatrix = new Matrix4f(pPoseStack.last().pose());
@@ -117,13 +125,12 @@ public class ItemRendererMixin
         int a = shadowdrop$getShadowAlpha(pItemStack);
 
         Matrix4f quadMatrix = new Matrix4f(itemMatrix).scale(1/16f, -1/16f, 1/16f);
-        BufferBuilder builder = Tesselator.getInstance().getBuilder();
-        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        builder.vertex(quadMatrix, x1, y2, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x2, y2, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x2, y1, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x1, y1, z).color(r, g, b, a).endVertex();
-        BufferUploader.drawWithShader(builder.end());
+        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        builder.addVertex(quadMatrix, x1, y2, z).setColor(r, g, b, a);
+        builder.addVertex(quadMatrix, x2, y2, z).setColor(r, g, b, a);
+        builder.addVertex(quadMatrix, x2, y1, z).setColor(r, g, b, a);
+        builder.addVertex(quadMatrix, x1, y1, z).setColor(r, g, b, a);
+        BufferUploader.drawWithShader(builder.buildOrThrow());
 
         // Restore render system
         RenderSystem.depthFunc(GL11.GL_ALWAYS);
@@ -184,7 +191,7 @@ public class ItemRendererMixin
     // Returns whether an item is in a HUD hotbar slot
     @Unique private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, float z)
     {
-        if (minecraft.player == null || z != 150) return false;
+        if (minecraft.player == null || z != 550) return false;
 
         for (int i = 0; i < 9; i++)
         {
@@ -220,8 +227,7 @@ public class ItemRendererMixin
     // Check if item stack matches any given item ids or tags
     @Unique private boolean shadowdrop$matchesItemOrTag(ItemStack stack, List<? extends String> entries)
     {
-        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        if (itemId == null) return false;
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
         for (String entry : entries)
         {
@@ -231,7 +237,7 @@ public class ItemRendererMixin
                 String[] tagParts = entry.substring(1).split(":");
                 if (tagParts.length == 2)
                 {
-                    TagKey<Item> tag = ItemTags.create(new ResourceLocation(tagParts[0], tagParts[1]));
+                    TagKey<Item> tag = ItemTags.create(ResourceLocation.fromNamespaceAndPath(tagParts[0], tagParts[1]));
                     if (stack.is(tag)) return true;
                 }
             }

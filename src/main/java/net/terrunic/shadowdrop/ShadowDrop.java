@@ -1,6 +1,7 @@
 package net.terrunic.shadowdrop;
 
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
 
 @Mod(ShadowDrop.MOD_ID)
 public class ShadowDrop
@@ -10,8 +11,8 @@ public class ShadowDrop
     // Client bool to force refresh of corner pixel tests for drop shadows
     public static boolean shouldRefresh = false;
 
-    public ShadowDrop()
+    public ShadowDrop(ModContainer container)
     {
-        ShadowDropConfig.register();
+        ShadowDropConfig.register(container);
     }
 }
