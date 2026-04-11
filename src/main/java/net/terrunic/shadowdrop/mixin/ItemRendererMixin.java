@@ -72,6 +72,7 @@ public class ItemRendererMixin
         boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(pItemStack));
         boolean isInSlot = !isInCursor && shadowdrop$isInSlot((int)itemMatrix.m30() - 8, (int)itemMatrix.m31() - 8, (int)itemMatrix.m32());
         boolean isInHotbar = shadowdrop$isInHotbarSlot(pItemStack, itemMatrix.m32());
+        boolean isHoveredSlot = ShadowDrop.hoveredItem == pItemStack;
 
         boolean shouldRender = ShadowDropConfig.CLIENT.shadowsAlways.get()
             || (ShadowDropConfig.CLIENT.shadowsInSlots.get() && isInSlot)
@@ -81,8 +82,9 @@ public class ItemRendererMixin
 
         int shadowXOffset = ShadowDropConfig.CLIENT.shadowXOffset.get();
         int shadowYOffset = ShadowDropConfig.CLIENT.shadowYOffset.get();
-        boolean isCropped = !isInCursor &&
-            (ShadowDropConfig.CLIENT.cropToSlots.get() && isInSlot
+        boolean isCropped = !isInCursor
+            && !(ShadowDropConfig.CLIENT.uncropUnderCursor.get() && isHoveredSlot && !isInHotbar)
+            && (ShadowDropConfig.CLIENT.cropToSlots.get() && isInSlot
             || ShadowDropConfig.CLIENT.cropToHotbar.get() && isInHotbar);
 
         // Valid rendering context, mark mixin as rendering for recursive call
@@ -96,7 +98,10 @@ public class ItemRendererMixin
 
         RenderSystem.colorMask(false, false, false, false);
         RenderSystem.depthMask(true);
-        pPoseStack.translate(shadowXOffset/16f, -shadowYOffset/16f, -10/16f);
+
+        Matrix4f shadowMatrix = pPoseStack.last().pose();
+        shadowMatrix.translate(shadowXOffset/16f, -shadowYOffset/16f, 0);
+        shadowMatrix.translateLocal(0, 0, ShadowDropConfig.CLIENT.shadowZaOffset.get());
 
         ((ItemRenderer)(Object)this).render(pItemStack, pDisplayContext, pLeftHand, pPoseStack, pBuffer, pCombinedLight, pCombinedOverlay, pModel);
 
@@ -113,24 +118,26 @@ public class ItemRendererMixin
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        int x1 = shadowXOffset - 8;
-        int y1 = shadowYOffset - 8;
+        int x1 = -8;
+        int y1 = -8;
         int x2 = x1 + 16 - (isCropped ? shadowXOffset : 0);
         int y2 = y1 + 16 - (isCropped ? shadowYOffset : 0);
-        float z = ShadowDropConfig.CLIENT.shadowZOffset.get();
         int[] shadowColor = shadowdrop$getShadowColor();
         int r = shadowColor[0];
         int g = shadowColor[1];
         int b = shadowColor[2];
         int a = shadowdrop$getShadowAlpha(pItemStack);
 
-        Matrix4f quadMatrix = new Matrix4f(itemMatrix).scale(1/16f, -1/16f, 1/16f);
+        Matrix4f quadMatrix = new Matrix4f(shadowMatrix);
+        quadMatrix.scale(1/16f, -1/16f, 1/16f);
+        quadMatrix.translateLocal(0, 0, ShadowDropConfig.CLIENT.shadowZbOffset.get());
+
         BufferBuilder builder = Tesselator.getInstance().getBuilder();
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        builder.vertex(quadMatrix, x1, y2, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x2, y2, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x2, y1, z).color(r, g, b, a).endVertex();
-        builder.vertex(quadMatrix, x1, y1, z).color(r, g, b, a).endVertex();
+        builder.vertex(quadMatrix, x1, y2, 0).color(r, g, b, a).endVertex();
+        builder.vertex(quadMatrix, x2, y2, 0).color(r, g, b, a).endVertex();
+        builder.vertex(quadMatrix, x2, y1, 0).color(r, g, b, a).endVertex();
+        builder.vertex(quadMatrix, x1, y1, 0).color(r, g, b, a).endVertex();
         BufferUploader.drawWithShader(builder.end());
 
         // Restore render system

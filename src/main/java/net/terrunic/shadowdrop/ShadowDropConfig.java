@@ -34,13 +34,15 @@ public class ShadowDropConfig
         public final ForgeConfigSpec.IntValue shadowAlpha;
         public final ForgeConfigSpec.IntValue shadowXOffset;
         public final ForgeConfigSpec.IntValue shadowYOffset;
-        public final ForgeConfigSpec.IntValue shadowZOffset;
+        public final ForgeConfigSpec.IntValue shadowZaOffset;
+        public final ForgeConfigSpec.IntValue shadowZbOffset;
         public final ForgeConfigSpec.BooleanValue shadowsAlways;
         public final ForgeConfigSpec.BooleanValue shadowsInSlots;
         public final ForgeConfigSpec.BooleanValue shadowsInHotbar;
         public final ForgeConfigSpec.BooleanValue shadowsInCursor;
         public final ForgeConfigSpec.BooleanValue cropToSlots;
         public final ForgeConfigSpec.BooleanValue cropToHotbar;
+        public final ForgeConfigSpec.BooleanValue uncropUnderCursor;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBrColors;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> translucentItems;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> transparentItems;
@@ -77,10 +79,15 @@ public class ShadowDropConfig
                 .comment(" Shadow Y offset")
                 .defineInRange("shadowYOffset", 1, 0, 4);
 
-            shadowZOffset = builder
+            shadowZaOffset = builder
                 .comment("")
-                .comment(" Shadow Z offset")
-                .defineInRange("shadowZOffset", -50, -100, 0);
+                .comment(" Shadow Z offset (of item copy)")
+                .defineInRange("shadowZaOffset", -24, -128, 128);
+
+            shadowZbOffset = builder
+                .comment("")
+                .comment(" Shadow Z offset (of shadow quad)")
+                .defineInRange("shadowZbOffset", -16, -128, 128);
 
             builder.pop();
             builder.push("shadowContexts");
@@ -115,6 +122,11 @@ public class ShadowDropConfig
                 .comment("")
                 .comment(" Shadows of items in the hotbar should always be cropped")
                 .define("cropToHotbar", true);
+
+            uncropUnderCursor = builder
+                .comment("")
+                .comment(" Shadows of items under the cursor should be uncropped")
+                .define("uncropUnderCursor", false);
 
             builder.pop();
             builder.push("slotDetection");
