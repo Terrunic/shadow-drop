@@ -34,8 +34,8 @@ public class ShadowDropConfig
         public final ForgeConfigSpec.IntValue shadowAlpha;
         public final ForgeConfigSpec.IntValue shadowXOffset;
         public final ForgeConfigSpec.IntValue shadowYOffset;
-        public final ForgeConfigSpec.IntValue shadowZaOffset;
-        public final ForgeConfigSpec.IntValue shadowZbOffset;
+        public final ForgeConfigSpec.BooleanValue offsetItems;
+        public final ForgeConfigSpec.BooleanValue forceDepthRefresh;
         public final ForgeConfigSpec.BooleanValue shadowsAlways;
         public final ForgeConfigSpec.BooleanValue shadowsInSlots;
         public final ForgeConfigSpec.BooleanValue shadowsInHotbar;
@@ -50,7 +50,7 @@ public class ShadowDropConfig
         public Client(ForgeConfigSpec.Builder builder)
         {
             builder.comment(" Shadow Drop: Client Configuration")
-                .comment(" (note: for EMI compatibility, set 'use-batched-renderer' to 'false' in EMI config)")
+                .comment(" (check the mod page for more information on compatibility with other mods)")
                 .comment("")
                 .push("general");
 
@@ -79,15 +79,11 @@ public class ShadowDropConfig
                 .comment(" Shadow Y offset")
                 .defineInRange("shadowYOffset", 1, 0, 4);
 
-            shadowZaOffset = builder
+            offsetItems = builder
                 .comment("")
-                .comment(" Shadow Z offset (of item copy)")
-                .defineInRange("shadowZaOffset", -24, -128, 128);
-
-            shadowZbOffset = builder
-                .comment("")
-                .comment(" Shadow Z offset (of shadow quad)")
-                .defineInRange("shadowZbOffset", -16, -128, 128);
+                .comment(" Items are offset towards the camera to ensure space behind them for shadows")
+                .comment(" Disable if items are rendering above things they shouldn't")
+                .define("offsetItems", true);
 
             builder.pop();
             builder.push("shadowContexts");
@@ -154,6 +150,15 @@ public class ShadowDropConfig
                 .defineList("transparentItems",
                     List.of(),
                     obj -> obj instanceof String);
+
+            builder.pop();
+            builder.push("experimental");
+
+            forceDepthRefresh = builder
+                .comment(" EXPERIMENTAL: force refresh of depth buffer when rendering shadows")
+                .comment(" Fixes shadow rendering in some places (such as square shadows or shadows overlapping incorrectly)")
+                .comment(" May however break rendering elsewhere")
+                .define("forceDepthRefresh", false);
 
             builder.pop();
         }

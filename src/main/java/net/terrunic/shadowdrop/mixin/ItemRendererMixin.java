@@ -19,6 +19,7 @@ import net.terrunic.shadowdrop.CachedPixel;
 import net.terrunic.shadowdrop.ShadowDrop;
 import net.terrunic.shadowdrop.ShadowDropConfig;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
@@ -68,7 +69,9 @@ public class ItemRendererMixin
         }
 
         // Get rendering context
-        Matrix4f itemMatrix = new Matrix4f(pPoseStack.last().pose());
+        if (shadowdrop$matchesItemOrTag(pItemStack, ShadowDropConfig.CLIENT.transparentItems.get())) return;
+
+        Matrix4f itemMatrix = pPoseStack.last().pose();
         boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(pItemStack));
         boolean isInSlot = !isInCursor && shadowdrop$isInSlot((int)itemMatrix.m30() - 8, (int)itemMatrix.m31() - 8, (int)itemMatrix.m32());
         boolean isInHotbar = shadowdrop$isInHotbarSlot(pItemStack, itemMatrix.m32());
@@ -91,23 +94,27 @@ public class ItemRendererMixin
         shadowdrop$isRenderingShadow = true;
 
         // Clean render batch before rendering
-        if (pBuffer instanceof MultiBufferSource.BufferSource bs) bs.endBatch();
+        MultiBufferSource.BufferSource bufferSource = pBuffer instanceof MultiBufferSource.BufferSource bs ? bs : null;
+        if (bufferSource != null) bufferSource.endBatch();
+        float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
+        if (ShadowDropConfig.CLIENT.offsetItems.get()) pPoseStack.last().pose().translateLocal(0, 0, 32 * scaleZ);
 
         // Render copy of item (to depth mask) to use as shadow
         pPoseStack.pushPose();
 
         RenderSystem.colorMask(false, false, false, false);
         RenderSystem.depthMask(true);
+        if (minecraft.screen != null && ShadowDropConfig.CLIENT.forceDepthRefresh.get()) GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 
         Matrix4f shadowMatrix = pPoseStack.last().pose();
         shadowMatrix.translate(shadowXOffset/16f, -shadowYOffset/16f, 0);
-        shadowMatrix.translateLocal(0, 0, ShadowDropConfig.CLIENT.shadowZaOffset.get());
+        shadowMatrix.translateLocal(0, 0, -16 * scaleZ);
 
         ((ItemRenderer)(Object)this).render(pItemStack, pDisplayContext, pLeftHand, pPoseStack, pBuffer, pCombinedLight, pCombinedOverlay, pModel);
 
         pPoseStack.popPose();
         RenderSystem.disableDepthTest();
-        if (pBuffer instanceof MultiBufferSource.BufferSource bs) bs.endBatch();
+        if (bufferSource != null) bufferSource.endBatch();
         RenderSystem.enableDepthTest();
 
         // Render shadow quad (to color mask) to overlay item
@@ -129,8 +136,8 @@ public class ItemRendererMixin
         int a = shadowdrop$getShadowAlpha(pItemStack);
 
         Matrix4f quadMatrix = new Matrix4f(shadowMatrix);
-        quadMatrix.scale(1/16f, -1/16f, 1/16f);
-        quadMatrix.translateLocal(0, 0, ShadowDropConfig.CLIENT.shadowZbOffset.get());
+        quadMatrix.scale(1/16f, -1/16f, 1);
+        quadMatrix.translateLocal(0, 0, -16 * scaleZ);
 
         BufferBuilder builder = Tesselator.getInstance().getBuilder();
         builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
@@ -141,7 +148,7 @@ public class ItemRendererMixin
         BufferUploader.drawWithShader(builder.end());
 
         // Restore render system
-        RenderSystem.depthFunc(GL11.GL_ALWAYS);
+        RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
 
@@ -226,7 +233,6 @@ public class ItemRendererMixin
     @Unique private int shadowdrop$getShadowAlpha(ItemStack stack)
     {
         int alpha = ShadowDropConfig.CLIENT.shadowAlpha.get();
-        if (shadowdrop$matchesItemOrTag(stack, ShadowDropConfig.CLIENT.transparentItems.get())) return 0;
         if (shadowdrop$matchesItemOrTag(stack, ShadowDropConfig.CLIENT.translucentItems.get())) return alpha/2;
 
         return alpha;
