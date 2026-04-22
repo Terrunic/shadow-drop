@@ -16,16 +16,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.evandev.shadow_drop.ShadowDrop"
+      "com.evandev.shadowdrop.ShadowDrop"
     ],
     "client": [
-      "com.evandev.shadow_drop.client.ShadowDropClient"
-    ],
-    "fabric-datagen": [
-      "com.evandev.shadow_drop.datagen.TemplateDataGenerator"
+      "com.evandev.shadowdrop.client.ShadowDropClient"
     ],
     "modmenu": [
-      "com.evandev.shadow_drop.client.ModMenuIntegration"
+      "com.evandev.shadowdrop.client.ModMenuIntegration"
     ]
   },
   "mixins": [
