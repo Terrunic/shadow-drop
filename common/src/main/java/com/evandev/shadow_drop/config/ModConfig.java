@@ -10,6 +10,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ModConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -18,6 +21,42 @@ public class ModConfig {
 
     @SerializedName("enabled")
     public boolean enabled = true;
+
+    @SerializedName("shadow_color")
+    public String shadowColor = "#000000";
+
+    @SerializedName("shadow_alpha")
+    public int shadowAlpha = 99;
+
+    @SerializedName("shadow_x_offset")
+    public int shadowXOffset = 1;
+
+    @SerializedName("shadow_y_offset")
+    public int shadowYOffset = 1;
+
+    @SerializedName("shadows_always")
+    public boolean shadowsAlways = true;
+
+    @SerializedName("shadows_in_slots")
+    public boolean shadowsInSlots = true;
+
+    @SerializedName("shadows_in_hotbar")
+    public boolean shadowsInHotbar = true;
+
+    @SerializedName("shadows_in_cursor")
+    public boolean shadowsInCursor = true;
+
+    @SerializedName("crop_to_slots")
+    public boolean cropToSlots = true;
+
+    @SerializedName("crop_to_hotbar")
+    public boolean cropToHotbar = true;
+
+    @SerializedName("translucent_items")
+    public List<String> translucentItems = new ArrayList<>(Arrays.asList("#c:glass_blocks", "#c:glass_panes", "minecraft:beacon"));
+
+    @SerializedName("transparent_items")
+    public List<String> transparentItems = new ArrayList<>();
 
     public static ModConfig get() {
         if (INSTANCE == null) {

@@ -1,0 +1,17 @@
+{
+  "config.shadow_drop.title": "Shadow Drop Configuration",
+  "config.shadow_drop.category.general": "General Options",
+  "config.shadow_drop.option.enabled": "Mod Enabled",
+  "config.shadow_drop.option.shadow_color": "Shadow Color",
+  "config.shadow_drop.option.shadow_alpha": "Shadow Opacity (Alpha)",
+  "config.shadow_drop.option.shadow_x_offset": "Shadow X Offset",
+  "config.shadow_drop.option.shadow_y_offset": "Shadow Y Offset",
+  "config.shadow_drop.option.shadows_always": "Show Shadows Always",
+  "config.shadow_drop.option.shadows_in_slots": "Show Shadows in Inventory Slots",
+  "config.shadow_drop.option.shadows_in_hotbar": "Show Shadows in Hotbar",
+  "config.shadow_drop.option.shadows_in_cursor": "Show Shadows on Held Item",
+  "config.shadow_drop.option.crop_to_slots": "Crop Shadows to Slots",
+  "config.shadow_drop.option.crop_to_hotbar": "Crop Shadows to Hotbar",
+  "config.shadow_drop.option.translucent_items": "Translucent Items (Half Opacity)",
+  "config.shadow_drop.option.transparent_items": "Transparent Items (No Shadows)"
+}
