@@ -39,7 +39,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // EMI
-    runtimeOnly "dev.emi:emi-neoforge:${emi_version}"
+    implementation "dev.emi:emi-neoforge:${emi_version}"
 
     // ImmediatelyFast
     runtimeOnly "maven.modrinth:immediatelyfast:${immediately_fast_version}-neoforge"
