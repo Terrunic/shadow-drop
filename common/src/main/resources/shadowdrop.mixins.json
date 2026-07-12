@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.evandev.shadowdrop.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ItemRendererMixin",
+    "GuiGraphicsMixin",
+    "ScreenMixin"
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

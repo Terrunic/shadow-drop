@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${description}",
+  "authors": [
+    "${mod_author}"
+  ],
+  "contact": {
+    "homepage": "https://github.com/evanbones/Shadow-Drop",
+    "sources": "https://github.com/evanbones/Shadow-Drop"
+  },
+  "license": "${license}",
+  "icon": "icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "com.evandev.shadowdrop.FabricShadowDrop"
+    ],
+    "modmenu": [
+      "com.evandev.shadowdrop.compat.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21"
+  }
+}
