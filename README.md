@@ -8,3 +8,10 @@ A subtle client-side mod that adds drop shadows beneath items in GUIs, adding de
 
 Shadows can be configured via the generated `shadowdrop-client.toml` file.
 > Note: for cropping shadows, item slots are detected using the color of the pixel to the bottom right of each item. Adjust `slotBrColors` for compatibility with resource packs or modded GUIs where this pixel is not #FFFFFF.
+
+---
+
+⚠ **Mods that may need configuration for proper compatibility:**
+- **EMI**: disable `use-batched-renderer`
+- **ImmediatelyFast**: disable `hud_batching`
+- **Accelerated Rendering**: disable `gui_acceleration`
