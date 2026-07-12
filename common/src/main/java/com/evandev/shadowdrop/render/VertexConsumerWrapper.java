@@ -5,11 +5,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 
 public class VertexConsumerWrapper implements VertexConsumer {
-    private final VertexConsumer delegate;
-    private final int shadowR;
-    private final int shadowG;
-    private final int shadowB;
-    private final int shadowA;
+    protected final VertexConsumer delegate;
+    protected final int shadowR;
+    protected final int shadowG;
+    protected final int shadowB;
+    protected final int shadowA;
 
     public VertexConsumerWrapper(VertexConsumer delegate, float r, float g, float b, float a) {
         this.delegate = delegate;

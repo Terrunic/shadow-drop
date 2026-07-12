@@ -1,5 +1,6 @@
 package com.evandev.shadowdrop.render;
 
+import com.evandev.shadowdrop.platform.Services;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -42,6 +43,6 @@ public class ShadowBufferSource implements MultiBufferSource {
         RenderType targetType = RenderType.entityTranslucentCull(texture);
         lastShadowType = targetType;
 
-        return new VertexConsumerWrapper(delegate.getBuffer(targetType), r, g, b, a);
+        return Services.PLATFORM.wrapVertexConsumer(delegate.getBuffer(targetType), r, g, b, a);
     }
 }

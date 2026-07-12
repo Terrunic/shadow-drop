@@ -1,6 +1,8 @@
 package com.evandev.shadowdrop.platform;
 
 import com.evandev.shadowdrop.platform.services.IPlatformHelper;
+import com.evandev.shadowdrop.render.NeoVertexConsumerWrapper;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
@@ -33,5 +35,10 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isPhysicalClient() {
         return FMLLoader.getDist() == Dist.CLIENT;
+    }
+
+    @Override
+    public VertexConsumer wrapVertexConsumer(VertexConsumer delegate, float r, float g, float b, float a) {
+        return new NeoVertexConsumerWrapper(delegate, r, g, b, a);
     }
 }
