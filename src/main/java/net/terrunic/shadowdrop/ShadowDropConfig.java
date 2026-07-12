@@ -1,8 +1,6 @@
 package net.terrunic.shadowdrop;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
 import org.apache.commons.lang3.tuple.Pair;
 import java.util.Arrays;
 import java.util.List;
@@ -10,157 +8,122 @@ import java.util.List;
 // Mod config
 public class ShadowDropConfig
 {
-    public static final ForgeConfigSpec CLIENT_SPEC;
-    public static final Client CLIENT;
+    public static final ForgeConfigSpec SPEC;
+    public static final ShadowDropConfig INSTANCE;
 
-    static
-    {
-        Pair<Client, ForgeConfigSpec> clientPair = new ForgeConfigSpec.Builder().configure(Client::new);
-        CLIENT = clientPair.getLeft();
-        CLIENT_SPEC = clientPair.getRight();
+    static {
+        Pair<ShadowDropConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(ShadowDropConfig::new);
+        INSTANCE = pair.getLeft();
+        SPEC = pair.getRight();
     }
 
-    public static void register()
+    // Config values
+    public final ForgeConfigSpec.BooleanValue hotbarEnabled;
+    public final ForgeConfigSpec.BooleanValue hotbarCropped;
+    public final ForgeConfigSpec.BooleanValue slotEnabled;
+    public final ForgeConfigSpec.BooleanValue slotCropped;
+    public final ForgeConfigSpec.BooleanValue hoverEnabled;
+    public final ForgeConfigSpec.BooleanValue hoverCropped;
+    public final ForgeConfigSpec.BooleanValue cursorEnabled;
+    public final ForgeConfigSpec.BooleanValue outsideEnabled;
+    public final ForgeConfigSpec.BooleanValue elsewhereEnabled;
+
+    public final ForgeConfigSpec.ConfigValue<String> shadowColor;
+    public final ForgeConfigSpec.IntValue shadowAlpha;
+    public final ForgeConfigSpec.IntValue shadowOffsetX;
+    public final ForgeConfigSpec.IntValue shadowOffsetY;
+
+    public final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBrColors;
+
+    public final ForgeConfigSpec.ConfigValue<List<? extends String>> translucentItems;
+    public final ForgeConfigSpec.ConfigValue<List<? extends String>> transparentItems;
+
+    // Advanced
+    public final ForgeConfigSpec.BooleanValue forceDepthRefresh;
+
+    // Builder
+    private ShadowDropConfig(ForgeConfigSpec.Builder builder)
     {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CLIENT_SPEC);
-    }
+        builder.comment(" Shadow Drop: Configuration",
+                " (check the mod page for more information on compatibility with other mods)",
+                "")
+            .push("contexts");
 
-    // Client-side config
-    public static class Client
-    {
-        // Config values
-        public final ForgeConfigSpec.BooleanValue modEnabled;
-        public final ForgeConfigSpec.ConfigValue<String> shadowColor;
-        public final ForgeConfigSpec.IntValue shadowAlpha;
-        public final ForgeConfigSpec.IntValue shadowXOffset;
-        public final ForgeConfigSpec.IntValue shadowYOffset;
-        public final ForgeConfigSpec.BooleanValue offsetItems;
-        public final ForgeConfigSpec.BooleanValue forceDepthRefresh;
-        public final ForgeConfigSpec.BooleanValue shadowsAlways;
-        public final ForgeConfigSpec.BooleanValue shadowsInSlots;
-        public final ForgeConfigSpec.BooleanValue shadowsInHotbar;
-        public final ForgeConfigSpec.BooleanValue shadowsInCursor;
-        public final ForgeConfigSpec.BooleanValue cropToSlots;
-        public final ForgeConfigSpec.BooleanValue cropToHotbar;
-        public final ForgeConfigSpec.BooleanValue uncropUnderCursor;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> slotBrColors;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> translucentItems;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> transparentItems;
+        hotbarEnabled = builder
+            .comment(" Items in hotbar have shadows")
+            .define("hotbarEnabled", true);
+        hotbarCropped = builder
+            .comment(" Hotbar shadows are cropped")
+            .define("hotbarCropped", true);
+        slotEnabled = builder
+            .comment(" Items in slots have shadows")
+            .define("slotEnabled", true);
+        slotCropped = builder
+            .comment(" Slot shadows are cropped")
+            .define("slotCropped", true);
+        hoverEnabled = builder
+            .comment(" Items in slots being hovered over have shadows")
+            .define("hoverEnabled", true);
+        hoverCropped = builder
+            .comment(" Items in slots being hovered over are cropped")
+            .define("hoverCropped", true);
+        cursorEnabled = builder
+            .comment(" Items carried by the cursor have shadows")
+            .define("cursorEnabled", true);
+        outsideEnabled = builder
+            .comment(" Items in GUIs with slots have shadows")
+            .define("outsideEnabled", false);
+        elsewhereEnabled = builder
+            .comment(" Items in GUIs without slots have shadows")
+            .define("elsewhereEnabled", true);
 
-        public Client(ForgeConfigSpec.Builder builder)
-        {
-            builder.comment(" Shadow Drop: Client Configuration")
-                .comment(" (check the mod page for more information on compatibility with other mods)")
-                .comment("")
-                .push("general");
+        builder.pop();
+        builder.push("appearance");
 
-            modEnabled = builder
-                .comment(" Enable/disable the mod entirely")
-                .define("modEnabled", true);
+        shadowColor = builder
+            .comment(" Shadow color (RGB hex)")
+            .define("shadowColor", "#000000");
+        shadowAlpha = builder
+            .comment(" Shadow opacity (percentage, where 100% is fully opaque, and 0% disables the mod")
+            .defineInRange("shadowAlpha", 39, 0, 100);
+        shadowOffsetX = builder
+            .comment(" Shadow X offset")
+            .defineInRange("shadowOffsetX", 1, -4, 4);
+        shadowOffsetY = builder
+            .comment(" Shadow Y offset")
+            .defineInRange("shadowOffsetY", 1, -4, 4);
 
-            shadowColor = builder
-                .comment("")
-                .comment(" Shadow color (RGB hex)")
-                .define("shadowColor","#000000",
-                    obj -> obj instanceof String && ((String) obj).matches("^#[0-9A-Fa-f]{6}$"));
+        builder.pop();
+        builder.push("slotDetection");
 
-            shadowAlpha = builder
-                .comment("")
-                .comment(" Shadow opacity (255 is fully opaque)")
-                .defineInRange("shadowAlpha", 99, 0, 255);
+        slotBrColors = builder
+            .comment(" List of RGB hex colours for detection of visual slots",
+                " This colour is searched for in the bottom-right corner pixel wherever an item is rendered",
+                " Adjust for compatibility with resource packs or modded GUIs where this pixel is not #FFFFFF")
+            .defineList("slotBrColors",
+                List.of("#FFFFFF"), obj -> obj instanceof String);
 
-            shadowXOffset = builder
-                .comment("")
-                .comment(" Shadow X offset")
-                .defineInRange("shadowXOffset", 1, 0, 4);
+        builder.pop();
+        builder.push("exceptions");
 
-            shadowYOffset = builder
-                .comment("")
-                .comment(" Shadow Y offset")
-                .defineInRange("shadowYOffset", 1, 0, 4);
+        translucentItems = builder
+            .comment(" List of items with half shadow alpha (e.g. \"#forge:glass\", \"minecraft:glass\")")
+            .defineListAllowEmpty("translucentItems",
+                Arrays.asList("#forge:glass", "#forge:glass_panes", "minecraft:beacon"), e -> e instanceof String);
+        transparentItems = builder
+            .comment(" List of items with no shadow (e.g. \"#forge:glass\", \"minecraft:glass\")")
+            .defineListAllowEmpty("transparentItems",
+                List.of(), e -> e instanceof String);
 
-            offsetItems = builder
-                .comment("")
-                .comment(" Items are offset towards the camera to ensure space behind them for shadows")
-                .comment(" Disable if items are rendering above things they shouldn't")
-                .define("offsetItems", true);
+        builder.pop();
+        builder.push("advanced");
 
-            builder.pop();
-            builder.push("shadowContexts");
+        forceDepthRefresh = builder
+            .comment(" Force refresh of the depth buffer when rendering shadows",
+                " Fixes shadow rendering in some places (such as square shadows or shadows overlapping incorrectly)",
+                " May break rendering elsewhere!")
+            .define("forceDepthRefresh", false);
 
-            shadowsAlways = builder
-                .comment(" Items always have shadows (overrules other shadow contexts when true)")
-                .define("shadowsAlways", true);
-
-            shadowsInSlots = builder
-                .comment("")
-                .comment(" Items in slots (see slot detection config) have shadows")
-                .define("shadowsInSlots", true);
-
-            shadowsInHotbar = builder
-                .comment("")
-                .comment(" Items in hotbar slots always have shadows")
-                .define("shadowsInHotbar", true);
-
-            shadowsInCursor = builder
-                .comment("")
-                .comment(" Items being carried by the cursor have shadows")
-                .define("shadowsInCursor", true);
-
-            builder.pop();
-            builder.push("cropContexts");
-
-            cropToSlots = builder
-                .comment(" Shadows of items in slots (see slot detection config) should be cropped")
-                .define("cropToSlots", true);
-
-            cropToHotbar = builder
-                .comment("")
-                .comment(" Shadows of items in the hotbar should always be cropped")
-                .define("cropToHotbar", true);
-
-            uncropUnderCursor = builder
-                .comment("")
-                .comment(" Shadows of items under the cursor should be uncropped")
-                .define("uncropUnderCursor", false);
-
-            builder.pop();
-            builder.push("slotDetection");
-
-            slotBrColors = builder
-                .comment(" RGB hex colors for detection of visual slots (e.g. \"#FFFFFF\")")
-                .comment(" This color is searched for in the bottom-right corner pixel wherever an item is rendered")
-                .comment(" Adjust for compatibility with resource packs or modded GUIs where this pixel is not #FFFFFF")
-                .defineList("slotBrColors",
-                    List.of("#FFFFFF"),
-                    obj -> obj instanceof String && ((String) obj).matches("^#[0-9A-Fa-f]{6}$"));
-
-            builder.pop();
-            builder.push("exceptions");
-
-            translucentItems = builder
-                .comment(" Items with half shadow alpha (e.g. \"#forge:glass\", \"minecraft:glass\")")
-                .defineList("translucentItems",
-                    Arrays.asList("#forge:glass", "#forge:glass_panes", "minecraft:beacon"),
-                    obj -> obj instanceof String);
-
-            transparentItems = builder
-                .comment("")
-                .comment(" Items with no shadow (e.g. \"#forge:glass\", \"minecraft:glass\")")
-                .defineList("transparentItems",
-                    List.of(),
-                    obj -> obj instanceof String);
-
-            builder.pop();
-            builder.push("experimental");
-
-            forceDepthRefresh = builder
-                .comment(" EXPERIMENTAL: force refresh of depth buffer when rendering shadows")
-                .comment(" Fixes shadow rendering in some places (such as square shadows or shadows overlapping incorrectly)")
-                .comment(" May however break rendering elsewhere")
-                .define("forceDepthRefresh", false);
-
-            builder.pop();
-        }
+        builder.pop();
     }
 }

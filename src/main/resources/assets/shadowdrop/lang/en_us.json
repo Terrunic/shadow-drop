@@ -1,0 +1,49 @@
+{
+  "gui.shadowdrop.config.title": "Shadow Drop Config",
+
+  "gui.shadowdrop.config.checkbox_shadows": "Toggle shadows",
+  "gui.shadowdrop.config.checkbox_cropping": "Toggle shadow cropping",
+
+  "gui.shadowdrop.config.context_hotbar": "of items in the hotbar",
+  "gui.shadowdrop.config.context_slot": "of items in slots",
+  "gui.shadowdrop.config.context_slot.extra": "(identified by color, see slot color list)",
+  "gui.shadowdrop.config.context_hover": "of items in slots being hovered over",
+  "gui.shadowdrop.config.context_cursor": "of items carried by the cursor",
+  "gui.shadowdrop.config.context_outside": "of items in GUIs with slots",
+  "gui.shadowdrop.config.context_outside.extra": "(e.g. shadows of items in recipe book, JEI, etc.)",
+  "gui.shadowdrop.config.context_elsewhere": "of items in GUIs without slots",
+  "gui.shadowdrop.config.context_elsewhere.extra": "(e.g. shadows of items in advancements screen)",
+
+  "gui.shadowdrop.config.editbox_preview": "ID of item to preview",
+  "gui.shadowdrop.config.editbox_color": "Shadow color",
+  "gui.shadowdrop.config.editbox_color.desc": "#RRGGBB",
+  "gui.shadowdrop.config.editbox_alpha": "Shadow opacity",
+  "gui.shadowdrop.config.editbox_alpha.desc": "0-100%",
+  "gui.shadowdrop.config.editbox_cropcolor": "Slot colors",
+  "gui.shadowdrop.config.editbox_cropcolor.desc": "List of #RRGGBB colors used to identify slots from the bottom-right pixel of the slot texture",
+  "gui.shadowdrop.config.editbox_translucent": "Items with a weaker shadow",
+  "gui.shadowdrop.config.editbox_translucent.desc": "List of item IDs or item tags",
+  "gui.shadowdrop.config.editbox_transparent": "Items with no shadow",
+  "gui.shadowdrop.config.editbox_transparent.desc": "List of item IDs or item tags",
+  "gui.shadowdrop.config.editbox_list.extra": "Entries are separated by commas",
+
+  "gui.shadowdrop.config.button_position.0": "Move shadows left",
+  "gui.shadowdrop.config.button_position.1": "Move shadows down",
+  "gui.shadowdrop.config.button_position.2": "Move shadows up",
+  "gui.shadowdrop.config.button_position.3": "Move shadows right",
+
+  "gui.shadowdrop.config.button_cropcolor.add": "Add previewed slot color to list",
+  "gui.shadowdrop.config.button_cropcolor.remove": "Remove previewed slot color from list",
+  "gui.shadowdrop.config.button_alpha.add": "Add previewed item to list",
+  "gui.shadowdrop.config.button_alpha.remove": "Remove previewed item from list",
+  "gui.shadowdrop.config.button_reset": "Reset config to default",
+
+  "gui.shadowdrop.config.warning.0": "Mod compatibility warning",
+  "gui.shadowdrop.config.warning.0.desc": "See Shadow Drop mod page for info on:",
+  "gui.shadowdrop.config.warning.1": "Color of previewed slot is not in list",
+  "gui.shadowdrop.config.warning.2": "Item tags cannot be previewed from main menu",
+  "gui.shadowdrop.config.warning.3": "Item tags cannot be previewed from main menu",
+  "gui.shadowdrop.config.warning.4": "Shadows are difficult to see",
+  "gui.shadowdrop.config.warning.5": "Shadows are invisible, mod has been disabled",
+  "gui.shadowdrop.config.warning.6": "Shadows have no offset so may not be visible"
+}

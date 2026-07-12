@@ -5,8 +5,9 @@
   "minVersion": "0.8",
   "refmap": "shadowdrop.refmap.json",
   "client": [
-    "ItemRendererMixin",
-    "GuiGraphicsMixin"
+    "GameRendererMixin",
+    "GuiGraphicsMixin",
+    "ItemRendererMixin"
   ],
   "mixins": [
   ],
