@@ -1,5 +1,9 @@
 package com.evandev.shadowdrop.mixin;
 
+import com.evandev.shadowdrop.ShadowDrop;
+import com.evandev.shadowdrop.ShadowDropConfig;
+import com.evandev.shadowdrop.render.ShadowBufferSource;
+import com.evandev.shadowdrop.util.CachedPixel;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -12,15 +16,10 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import com.evandev.shadowdrop.ShadowDrop;
-import com.evandev.shadowdrop.ShadowDropConfig;
-import com.evandev.shadowdrop.render.ShadowBufferSource;
-import com.evandev.shadowdrop.util.CachedPixel;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -39,9 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Mixin to render drop shadows under items in GUI contexts
-@Mixin(ItemRenderer.class)
+@Mixin(value = ItemRenderer.class, priority = 500)
 public class ItemRendererMixin {
-    // Cache for optimization
     @Unique
     private static final List<CachedPixel> shadowdrop$cachedPixels = new ArrayList<>();
     @Unique
@@ -68,43 +66,30 @@ public class ItemRendererMixin {
             "Lnet/minecraft/client/renderer/MultiBufferSource;" +
             "IILnet/minecraft/client/resources/model/BakedModel;)V",
             at = @At("HEAD"))
-    private void shadowdrop$translateItem(ItemStack pItemStack, ItemDisplayContext pDisplayContext, boolean pLeftHand, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, int pCombinedOverlay, BakedModel pModel, CallbackInfo ci) {
-        if (pItemStack.isEmpty() || pDisplayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
+    private void shadowdrop$renderShadowAndTranslate(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
+        if (itemStack.isEmpty() || displayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
             return;
 
         if (ShadowDropConfig.CLIENT.offsetItems) {
-            Matrix4f itemMatrix = pPoseStack.last().pose();
+            Matrix4f itemMatrix = poseStack.last().pose();
             float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
-            pPoseStack.last().pose().translateLocal(0, 0, 32 * scaleZ);
+            poseStack.last().pose().translateLocal(0, 0, 32 * scaleZ);
         }
 
-        shadowdrop$screenPose.set(pPoseStack.last().pose());
-        shadowdrop$screenNormal.set(pPoseStack.last().normal());
-    }
+        shadowdrop$screenPose.set(poseStack.last().pose());
+        shadowdrop$screenNormal.set(poseStack.last().normal());
 
-    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" +
-            "Lnet/minecraft/world/item/ItemDisplayContext;" +
-            "ZLcom/mojang/blaze3d/vertex/PoseStack;" +
-            "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-            "IILnet/minecraft/client/resources/model/BakedModel;)V",
-            at = @At("TAIL"))
-    private void shadowdrop$renderShadow(ItemStack pItemStack, ItemDisplayContext pDisplayContext, boolean pLeftHand, PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, int pCombinedOverlay, BakedModel pModel, CallbackInfo ci) {
-        if (pItemStack.isEmpty() || pDisplayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
-            return;
-
-        // Refresh pixel cache if remotely called to
         if (ShadowDrop.shouldRefresh) {
             ShadowDrop.shouldRefresh = false;
             shadowdrop$cachedPixels.clear();
         }
 
-        // Get rendering context
-        if (shadowdrop$matchesItemOrTag(pItemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
+        if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
 
-        Matrix4f itemMatrix = pPoseStack.last().pose();
-        boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(pItemStack));
+        Matrix4f itemMatrix = poseStack.last().pose();
+        boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack));
         boolean isInSlot = !isInCursor && shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32());
-        boolean isInHotbar = shadowdrop$isInHotbarSlot(pItemStack, itemMatrix.m32());
+        boolean isInHotbar = shadowdrop$isInHotbarSlot(itemStack, itemMatrix.m32());
 
         boolean shouldRender = ShadowDropConfig.CLIENT.shadowsAlways
                 || (ShadowDropConfig.CLIENT.shadowsInSlots && isInSlot)
@@ -124,11 +109,11 @@ public class ItemRendererMixin {
         float r = shadowColor[0] / 255f;
         float g = shadowColor[1] / 255f;
         float b = shadowColor[2] / 255f;
-        float a = shadowdrop$getShadowAlpha(pItemStack) / 255f;
+        float a = shadowdrop$getShadowAlpha(itemStack) / 255f;
 
-        ShadowBufferSource shadowBuffer = new ShadowBufferSource(pBuffer, r, g, b, a);
+        ShadowBufferSource shadowBuffer = new ShadowBufferSource(bufferSource, r, g, b, a);
 
-        boolean isHoveredSlot = ShadowDrop.hoveredItem == pItemStack;
+        boolean isHoveredSlot = ShadowDrop.hoveredItem == itemStack;
         boolean isCropped = !isInCursor
                 && !(ShadowDropConfig.CLIENT.uncropUnderCursor && isHoveredSlot && !isInHotbar)
                 && (ShadowDropConfig.CLIENT.cropToSlots && isInSlot
@@ -151,9 +136,9 @@ public class ItemRendererMixin {
         shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
         shadowPoseStack.translate(shadowXOffset / 16f, -shadowYOffset / 16f, -1.5f * scaleZ);
 
-        ((ItemRenderer) (Object) this).render(pItemStack, pDisplayContext, pLeftHand, shadowPoseStack, shadowBuffer, pCombinedLight, pCombinedOverlay, pModel);
+        ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 
-        if (pBuffer instanceof BufferSource immediate) {
+        if (bufferSource instanceof BufferSource immediate) {
             RenderType lastType = shadowBuffer.getLastShadowType();
             if (lastType != null) {
                 immediate.endBatch(lastType);

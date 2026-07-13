@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with Supplementaries.
+- Fixed issues with Continuity.
