@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 
-public class NeoVertexConsumerWrapper extends VertexConsumerWrapper {
+public class ForgeVertexConsumerWrapper extends VertexConsumerWrapper {
 
-    public NeoVertexConsumerWrapper(VertexConsumer delegate, float r, float g, float b, float a) {
+    public ForgeVertexConsumerWrapper(VertexConsumer delegate, float r, float g, float b, float a) {
         super(delegate, r, g, b, a);
     }
 

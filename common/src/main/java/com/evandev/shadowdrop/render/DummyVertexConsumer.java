@@ -9,32 +9,44 @@ public class DummyVertexConsumer implements VertexConsumer {
     }
 
     @Override
-    public VertexConsumer addVertex(float x, float y, float z) {
+    public VertexConsumer vertex(double x, double y, double z) {
         return this;
     }
 
     @Override
-    public VertexConsumer setColor(int r, int g, int b, int a) {
+    public VertexConsumer color(int r, int g, int b, int a) {
         return this;
     }
 
     @Override
-    public VertexConsumer setUv(float u, float v) {
+    public VertexConsumer uv(float u, float v) {
         return this;
     }
 
     @Override
-    public VertexConsumer setUv1(int u, int v) {
-        return this;
+    public VertexConsumer overlayCoords(int i, int i1) {
+        return null;
     }
 
     @Override
-    public VertexConsumer setUv2(int u, int v) {
-        return this;
+    public VertexConsumer uv2(int i, int i1) {
+        return null;
     }
 
     @Override
-    public VertexConsumer setNormal(float x, float y, float z) {
-        return this;
+    public VertexConsumer normal(float v, float v1, float v2) {
+        return null;
+    }
+
+    @Override
+    public void endVertex() {
+    }
+
+    @Override
+    public void defaultColor(int i, int i1, int i2, int i3) {
+    }
+
+    @Override
+    public void unsetDefaultColor() {
     }
 }

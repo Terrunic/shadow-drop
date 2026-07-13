@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "${neoforge_loader_version_range}"
+loaderVersion = "${forge_loader_version_range}"
 license = "${license}"
 issueTrackerURL = "https://github.com/evanbones/Shadow-Drop/issues"
 
@@ -12,26 +12,23 @@ credits = "${credits}"
 authors = "${mod_author}"
 description = '''${description}'''
 
-[[mixins]]
-config = "${mod_id}.mixins.json"
-
 [[dependencies.${ mod_id }]]
-modId = "neoforge"
-type = "required"
-versionRange = "[${neoforge_version},)"
+modId = "forge"
+mandatory = true
+versionRange = "[${forge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${ mod_id }]]
 modId = "minecraft"
-type = "required"
+mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${ mod_id }]]
 modId = "yet_another_config_lib_v3"
-type = "optional"
+mandatory = false
 versionRange = "[${yacl_version},)"
 ordering = "NONE"
 side = "CLIENT"

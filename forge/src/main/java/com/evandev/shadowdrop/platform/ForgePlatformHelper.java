@@ -1,20 +1,20 @@
 package com.evandev.shadowdrop.platform;
 
 import com.evandev.shadowdrop.platform.services.IPlatformHelper;
-import com.evandev.shadowdrop.render.NeoVertexConsumerWrapper;
+import com.evandev.shadowdrop.render.ForgeVertexConsumerWrapper;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
-public class NeoForgePlatformHelper implements IPlatformHelper {
+public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public String getPlatformName() {
-        return "NeoForge";
+        return "Forge";
     }
 
     @Override
@@ -39,6 +39,6 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public VertexConsumer wrapVertexConsumer(VertexConsumer delegate, float r, float g, float b, float a) {
-        return new NeoVertexConsumerWrapper(delegate, r, g, b, a);
+        return new ForgeVertexConsumerWrapper(delegate, r, g, b, a);
     }
 }

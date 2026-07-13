@@ -1,9 +1,11 @@
 package com.evandev.shadowdrop.mixin;
 
 import com.evandev.shadowdrop.ShadowDrop;
+import com.evandev.shadowdrop.mixin.accessor.AbstractContainerScreenAccessor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,7 +24,8 @@ public class ScreenMixin {
     private void shadowdrop$onRender(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         Screen screen = (Screen) (Object) this;
         if (screen instanceof AbstractContainerScreen<?> containerScreen) {
-            ShadowDrop.hoveredItem = containerScreen.hoveredSlot != null ? containerScreen.hoveredSlot.getItem() : ItemStack.EMPTY;
+            Slot hoveredSlot = ((AbstractContainerScreenAccessor) containerScreen).getHoveredSlot();
+            ShadowDrop.hoveredItem = hoveredSlot != null ? hoveredSlot.getItem() : ItemStack.EMPTY;
         } else {
             ShadowDrop.hoveredItem = ItemStack.EMPTY;
         }

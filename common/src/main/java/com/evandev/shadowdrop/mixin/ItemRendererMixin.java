@@ -238,7 +238,7 @@ public class ItemRendererMixin {
             if (entry.startsWith("#")) {
                 String[] tagParts = entry.substring(1).split(":");
                 if (tagParts.length == 2) {
-                    TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(tagParts[0], tagParts[1]));
+                    TagKey<Item> tag = TagKey.create(Registries.ITEM, new ResourceLocation(tagParts[0], tagParts[1]));
                     if (stack.is(tag)) return true;
                 }
             } else if (itemId.toString().equals(entry)) return true;

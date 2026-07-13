@@ -14,7 +14,7 @@ dependencies {
     modImplementation "dev.emi:emi-fabric:${emi_version}"
 
     // ImmediatelyFast
-    modRuntimeOnly "maven.modrinth:immediatelyfast:${immediately_fast_version}-fabric"
+    // modRuntimeOnly "maven.modrinth:immediatelyfast:${immediately_fast_version}-fabric"
 
     // YACL
     modImplementation "maven.modrinth:yacl:${yacl_version}-fabric"
@@ -26,6 +26,8 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    implementation project(":common")
 }
 
 loom {

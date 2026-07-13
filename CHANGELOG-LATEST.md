@@ -1,3 +1,1 @@
-### Fixed
-
-- Fixed issues with Continuity.
+- Backported to 1.20.1.
