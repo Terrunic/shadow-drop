@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with Continuity.
+- Fixed issues with certain tooltip mods.
