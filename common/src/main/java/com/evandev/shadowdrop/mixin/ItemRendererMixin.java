@@ -132,9 +132,11 @@ public class ItemRendererMixin {
         }
 
         PoseStack shadowPoseStack = new PoseStack();
-        shadowPoseStack.last().pose().set(shadowdrop$screenPose);
+        Matrix4f shadowMatrix = shadowPoseStack.last().pose();
+        shadowMatrix.set(shadowdrop$screenPose);
         shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
-        shadowPoseStack.translate(shadowXOffset / 16f, -shadowYOffset / 16f, -1.5f * scaleZ);
+        shadowMatrix.translate(shadowXOffset / 16f, -shadowYOffset / 16f, 0);
+        shadowMatrix.translateLocal(0, 0, -1.5f * scaleZ * 16f);
 
         ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 
