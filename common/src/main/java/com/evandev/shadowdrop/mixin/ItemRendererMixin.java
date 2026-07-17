@@ -5,9 +5,9 @@ import com.evandev.shadowdrop.ShadowDropConfig;
 import com.evandev.shadowdrop.render.ShadowBufferSource;
 import com.evandev.shadowdrop.util.CachedPixel;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -119,16 +119,13 @@ public class ItemRendererMixin {
                 && (ShadowDropConfig.CLIENT.cropToSlots && isInSlot
                 || ShadowDropConfig.CLIENT.cropToHotbar && isInHotbar);
 
-        if (isCropped) {
-            Window window = minecraft.getWindow();
-            int scale = (int) window.getGuiScale();
+        GuiGraphics guiGraphics = (GuiGraphics) ShadowDrop.currentGuiGraphics;
+        boolean useGuiScissor = isCropped && guiGraphics != null;
+
+        if (useGuiScissor) {
             int slotX = (int) shadowdrop$screenPose.m30() - 8;
             int slotY = (int) shadowdrop$screenPose.m31() - 8;
-            int scissorX = slotX * scale;
-            int scissorY = window.getHeight() - (slotY + 16) * scale;
-            int scissorW = 16 * scale;
-            int scissorH = 16 * scale;
-            RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
+            guiGraphics.enableScissor(slotX, slotY, slotX + 16, slotY + 16);
         }
 
         PoseStack shadowPoseStack = new PoseStack();
@@ -148,8 +145,8 @@ public class ItemRendererMixin {
             }
         }
 
-        if (isCropped) {
-            RenderSystem.disableScissor();
+        if (useGuiScissor) {
+            guiGraphics.disableScissor();
         }
 
         shadowdrop$isRenderingShadow = false;
@@ -158,6 +155,9 @@ public class ItemRendererMixin {
     // Returns whether the bottom right corner of the given window position has valid slot corner color
     @Unique
     private boolean shadowdrop$isInSlot(int x, int y, int z) {
+        // Only consider items at standard slot Z levels to prevent false positives in tooltips/etc
+        if (z < 240 || z > 290) return false;
+
         // Update cache if config changed
         List<String> hexColors = ShadowDropConfig.CLIENT.slotBrColors;
         int newColorsHash = hexColors.hashCode();
@@ -202,7 +202,12 @@ public class ItemRendererMixin {
     // Returns whether an item is in a HUD hotbar slot
     @Unique
     private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, float z) {
-        if (minecraft.player == null || z != 150) return false;
+        if (minecraft.player == null) return false;
+
+        // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge for some godforsaken reason.
+        // If offsetItems is enabled, it adds 32 to the Z coordinate
+        boolean isValidZ = Math.abs(z - 150) < 1f || Math.abs(z - 182) < 1f || Math.abs(z - 550) < 1f || Math.abs(z - 582) < 1f;
+        if (!isValidZ) return false;
 
         for (int i = 0; i < 9; i++) {
             if (minecraft.player.getInventory().getItem(i) == pItemStack) return true;
