@@ -156,7 +156,8 @@ public class ItemRendererMixin {
     @Unique
     private boolean shadowdrop$isInSlot(int x, int y, int z) {
         // Only consider items at standard slot Z levels to prevent false positives in tooltips/etc
-        if (z < 240 || z > 290) return false;
+        boolean isValidSlotZ = Math.abs(z - 150) < 5f || Math.abs(z - 182) < 5f || Math.abs(z - 250) < 5f || Math.abs(z - 282) < 5f;
+        if (!isValidSlotZ) return false;
 
         // Update cache if config changed
         List<String> hexColors = ShadowDropConfig.CLIENT.slotBrColors;
