@@ -32,6 +32,10 @@ public class ShadowBufferSource implements MultiBufferSource {
             return DummyVertexConsumer.INSTANCE;
         }
 
+        if (!type.format().equals(ShadowRenderType.FORMAT)) {
+            return DummyVertexConsumer.INSTANCE;
+        }
+
         ResourceLocation texture = InventoryMenu.BLOCK_ATLAS;
         if (type instanceof RenderType.CompositeRenderType compositeType) {
             RenderType.CompositeState state = compositeType.state;

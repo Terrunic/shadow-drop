@@ -13,11 +13,12 @@ import java.util.function.Function;
  * Copy of entityTranslucentCull with a strict < depth test
  */
 public class ShadowRenderType extends RenderType {
+    public static final VertexFormat FORMAT = DefaultVertexFormat.NEW_ENTITY;
     private static final DepthTestStateShard LESS_DEPTH_TEST = new DepthTestStateShard("<", GL11.GL_LESS);
 
     private static final Function<ResourceLocation, RenderType> SHADOW = Util.memoize(texture -> create(
             "shadowdrop_shadow",
-            DefaultVertexFormat.NEW_ENTITY,
+            FORMAT,
             VertexFormat.Mode.QUADS,
             1536,
             true,
