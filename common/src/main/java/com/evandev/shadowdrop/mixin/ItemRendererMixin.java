@@ -137,6 +137,7 @@ public class ItemRendererMixin {
         shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
         shadowMatrix.translate(shadowXOffset / 16f, -shadowYOffset / 16f, 0);
         shadowMatrix.translateLocal(0, 0, -1.5f * scaleZ * 16f);
+        shadowMatrix.m02(0f).m12(0f).m22(0f);
 
         ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 

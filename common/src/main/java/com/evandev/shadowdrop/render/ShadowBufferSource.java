@@ -40,7 +40,7 @@ public class ShadowBufferSource implements MultiBufferSource {
                 texture = optTexture.get();
             }
         }
-        RenderType targetType = RenderType.entityTranslucentCull(texture);
+        RenderType targetType = ShadowRenderType.get(texture);
         lastShadowType = targetType;
 
         return Services.PLATFORM.wrapVertexConsumer(delegate.getBuffer(targetType), r, g, b, a);
