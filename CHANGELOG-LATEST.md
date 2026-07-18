@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with certain tooltip mods.
+- Fixed Fabric crash.

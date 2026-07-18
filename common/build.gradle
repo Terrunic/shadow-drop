@@ -6,9 +6,9 @@ plugins {
 legacyForge {
     mcpVersion = minecraft_version
 
-    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    def at = file("src/main/resources/META-INF/accesstransformer.cfg")
     if (at.exists()) {
-        accessTransformers.from(at.absolutePath)
+        accessTransformers.from(at)
     }
 
     parchment {
@@ -27,8 +27,6 @@ dependencies {
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinextras_version}"
 }
-
-sourceSets.main.resources.srcDir 'src/generated/resources'
 
 configurations {
     commonJava {
