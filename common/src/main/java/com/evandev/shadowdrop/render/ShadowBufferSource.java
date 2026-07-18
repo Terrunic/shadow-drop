@@ -38,6 +38,10 @@ public class ShadowBufferSource implements MultiBufferSource {
             return DummyVertexConsumer.INSTANCE;
         }
 
+        if (!type.format().equals(ShadowRenderType.FORMAT)) {
+            return DummyVertexConsumer.INSTANCE;
+        }
+
         ResourceLocation texture = InventoryMenu.BLOCK_ATLAS;
         if (type instanceof CompositeRenderTypeAccessor compositeType) {
             RenderType.CompositeState state = compositeType.getState();
@@ -49,7 +53,7 @@ public class ShadowBufferSource implements MultiBufferSource {
             }
         }
 
-        RenderType targetType = RenderType.entityTranslucentCull(texture);
+        RenderType targetType = ShadowRenderType.get(texture);
         lastShadowType = targetType;
 
         return Services.PLATFORM.wrapVertexConsumer(delegate.getBuffer(targetType), r, g, b, a);

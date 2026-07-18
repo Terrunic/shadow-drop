@@ -11,6 +11,8 @@ public class ShadowDrop {
     public static boolean shouldRefresh = false;
     // Tracker for item currently under cursor
     public static ItemStack hoveredItem = ItemStack.EMPTY;
+    // Tracker for current active GuiGraphics
+    public static Object currentGuiGraphics = null;
 
     public static void init() {
         ShadowDropConfig.load();

@@ -12,7 +12,8 @@
     "accessor.CompositeRenderTypeAccessor",
     "accessor.CompositeStateAccessor",
     "accessor.EmptyTextureStateShardAccessor",
-    "accessor.RenderStateShardAccessor"
+    "accessor.RenderStateShardAccessor",
+    "accessor.RenderTypeAccessor"
   ],
   "mixins": [
   ],
