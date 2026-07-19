@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed Fabric crash.
+- Fixed issues with EnhancedTooltips.

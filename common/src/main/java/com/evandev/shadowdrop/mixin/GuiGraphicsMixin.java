@@ -30,13 +30,13 @@ public class GuiGraphicsMixin {
     }
 
     // Offset tooltip to ensure it remains above items
-    @Inject(method = "renderTooltipInternal", at = @At("HEAD"))
+    @Inject(method = "renderTooltipInternal", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
     private void shadowdrop$tooltipZOffset(Font font, List<ClientTooltipComponent> components, int x, int y, ClientTooltipPositioner positioner, CallbackInfo ci) {
         if (ShadowDropConfig.CLIENT.offsetItems) ((GuiGraphics) (Object) this).pose().translate(0, 0, 32);
     }
 
     // Restore tooltip
-    @Inject(method = "renderTooltipInternal", at = @At("TAIL"))
+    @Inject(method = "renderTooltipInternal", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void shadowdrop$tooltipZRestore(Font font, List<ClientTooltipComponent> components, int x, int y, ClientTooltipPositioner positioner, CallbackInfo ci) {
         if (ShadowDropConfig.CLIENT.offsetItems) ((GuiGraphics) (Object) this).pose().translate(0, 0, -32);
     }

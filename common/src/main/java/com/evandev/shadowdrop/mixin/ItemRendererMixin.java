@@ -87,9 +87,11 @@ public class ItemRendererMixin {
         if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
 
         Matrix4f itemMatrix = poseStack.last().pose();
+        int itemX = (int) itemMatrix.m30() - 8;
+        int itemY = (int) itemMatrix.m31() - 8;
         boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack));
-        boolean isInSlot = !isInCursor && shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32());
-        boolean isInHotbar = shadowdrop$isInHotbarSlot(itemStack, itemMatrix.m32());
+        boolean isInSlot = !isInCursor && shadowdrop$isInSlot(itemX, itemY, (int) itemMatrix.m32());
+        boolean isInHotbar = shadowdrop$isInHotbarSlot(itemStack, itemX, itemY, itemMatrix.m32());
 
         boolean shouldRender = ShadowDropConfig.CLIENT.shadowsAlways
                 || (ShadowDropConfig.CLIENT.shadowsInSlots && isInSlot)
@@ -200,20 +202,44 @@ public class ItemRendererMixin {
         return isSlotCorner;
     }
 
-    // Returns whether an item is in a HUD hotbar slot
+    // Returns whether an item is currently being rendered in a HUD hotbar slot
     @Unique
-    private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, float z) {
+    private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, int x, int y, float z) {
         if (minecraft.player == null) return false;
 
-        // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge for some godforsaken reason.
+        // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge / 1.21 LayeredDraw.
         // If offsetItems is enabled, it adds 32 to the Z coordinate
         boolean isValidZ = Math.abs(z - 150) < 1f || Math.abs(z - 182) < 1f || Math.abs(z - 550) < 1f || Math.abs(z - 582) < 1f;
         if (!isValidZ) return false;
 
+        boolean inHotbar = false;
         for (int i = 0; i < 9; i++) {
-            if (minecraft.player.getInventory().getItem(i) == pItemStack) return true;
+            if (minecraft.player.getInventory().getItem(i) == pItemStack) {
+                inHotbar = true;
+                break;
+            }
         }
-        return minecraft.player.getOffhandItem() == pItemStack;
+        if (!inHotbar && minecraft.player.getOffhandItem() == pItemStack) {
+            inHotbar = true;
+        }
+        if (!inHotbar) return false;
+
+        Window window = minecraft.getWindow();
+        int guiWidth = window.getGuiScaledWidth();
+        int guiHeight = window.getGuiScaledHeight();
+        int expectedY = guiHeight - 19;
+
+        if (Math.abs(y - expectedY) > 2) return false;
+
+        int midX = guiWidth / 2;
+        for (int i = 0; i < 9; i++) {
+            int expectedX = midX - 90 + i * 20 + 2;
+            if (Math.abs(x - expectedX) <= 2) return true;
+        }
+
+        int offhandX1 = midX - 117;
+        int offhandX2 = midX + 101;
+        return Math.abs(x - offhandX1) <= 2 || Math.abs(x - offhandX2) <= 2;
     }
 
     // Get RGB color for item shadow
