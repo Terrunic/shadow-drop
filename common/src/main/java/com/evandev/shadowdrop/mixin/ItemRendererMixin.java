@@ -55,6 +55,8 @@ public class ItemRendererMixin {
     @Unique
     private static boolean shadowdrop$isRenderingShadow = false;
     @Unique
+    private static int shadowdrop$guiRenderDepth = 0;
+    @Unique
     private final Matrix3f shadowdrop$screenNormal = new Matrix3f();
     @Final
     @Shadow
@@ -69,6 +71,12 @@ public class ItemRendererMixin {
     private void shadowdrop$renderShadowAndTranslate(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (itemStack.isEmpty() || displayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
             return;
+
+        if (shadowdrop$guiRenderDepth > 0) {
+            shadowdrop$guiRenderDepth++;
+            return;
+        }
+        shadowdrop$guiRenderDepth++;
 
         if (ShadowDropConfig.CLIENT.offsetItems) {
             Matrix4f itemMatrix = poseStack.last().pose();
@@ -152,6 +160,21 @@ public class ItemRendererMixin {
         }
 
         shadowdrop$isRenderingShadow = false;
+    }
+
+    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" +
+            "Lnet/minecraft/world/item/ItemDisplayContext;" +
+            "ZLcom/mojang/blaze3d/vertex/PoseStack;" +
+            "Lnet/minecraft/client/renderer/MultiBufferSource;" +
+            "IILnet/minecraft/client/resources/model/BakedModel;)V",
+            at = @At("RETURN"))
+    private void shadowdrop$onRenderReturn(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
+        if (itemStack.isEmpty() || displayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
+            return;
+
+        if (shadowdrop$guiRenderDepth > 0) {
+            shadowdrop$guiRenderDepth--;
+        }
     }
 
     // Returns whether the bottom right corner of the given window position has valid slot corner color

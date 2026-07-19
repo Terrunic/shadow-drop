@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with EnhancedTooltips.
+- Fixed issues with Cobblemon.
