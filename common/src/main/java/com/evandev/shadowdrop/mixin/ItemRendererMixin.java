@@ -148,10 +148,15 @@ public class ItemRendererMixin {
 
         ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 
+        // Fix for immediately fast HUD batching
         if (bufferSource instanceof BufferSource immediate) {
-            RenderType lastType = shadowBuffer.getLastShadowType();
-            if (lastType != null) {
-                immediate.endBatch(lastType);
+            boolean isImmediatelyFast = immediate.getClass().getName().contains("HudBatchingBufferSource")
+                    || immediate.getClass().getName().contains("BatchableBufferSource");
+            if (!isImmediatelyFast) {
+                RenderType lastType = shadowBuffer.getLastShadowType();
+                if (lastType != null) {
+                    immediate.endBatch(lastType);
+                }
             }
         }
 

@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with Cobblemon.
+- Fixed issues with Immediately Fast.
