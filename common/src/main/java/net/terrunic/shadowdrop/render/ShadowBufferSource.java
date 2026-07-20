@@ -1,18 +1,20 @@
 package net.terrunic.shadowdrop.render;
 
-import net.terrunic.shadowdrop.platform.Services;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.terrunic.shadowdrop.platform.Services;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class ShadowBufferSource implements MultiBufferSource {
     private final MultiBufferSource delegate;
     private final float r, g, b, a;
-    private RenderType lastShadowType = null;
+    private final Set<RenderType> usedTypes = new HashSet<>();
 
     public ShadowBufferSource(MultiBufferSource delegate, float r, float g, float b, float a) {
         this.delegate = delegate;
@@ -22,17 +24,16 @@ public class ShadowBufferSource implements MultiBufferSource {
         this.a = a;
     }
 
-    public RenderType getLastShadowType() {
-        return lastShadowType;
+    public void endShadowBatches(BufferSource immediate) {
+        for (RenderType type : usedTypes) {
+            immediate.endBatch(type);
+        }
+        usedTypes.clear();
     }
 
     @Override
     public VertexConsumer getBuffer(RenderType type) {
         if (type.name.contains("glint")) {
-            return DummyVertexConsumer.INSTANCE;
-        }
-
-        if (!type.format().equals(ShadowRenderType.FORMAT)) {
             return DummyVertexConsumer.INSTANCE;
         }
 
@@ -45,7 +46,7 @@ public class ShadowBufferSource implements MultiBufferSource {
             }
         }
         RenderType targetType = ShadowRenderType.get(texture);
-        lastShadowType = targetType;
+        usedTypes.add(targetType);
 
         return Services.PLATFORM.wrapVertexConsumer(delegate.getBuffer(targetType), r, g, b, a);
     }

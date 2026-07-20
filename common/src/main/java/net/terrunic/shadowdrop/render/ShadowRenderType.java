@@ -30,6 +30,7 @@ public class ShadowRenderType extends RenderType {
                     .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
                     .setDepthTestState(LESS_DEPTH_TEST)
+                    .setWriteMaskState(COLOR_DEPTH_WRITE)
                     .createCompositeState(true)));
 
     private ShadowRenderType(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling, boolean sortOnUpload, Runnable setupState, Runnable clearState) {

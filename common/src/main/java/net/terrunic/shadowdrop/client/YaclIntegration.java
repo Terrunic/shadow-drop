@@ -14,7 +14,7 @@ import net.terrunic.shadowdrop.ShadowDropConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class YaclConfigIntegration {
+public class YaclIntegration {
 
     public static Screen createScreen(Screen parent) {
         YetAnotherConfigLib.Builder builder = YetAnotherConfigLib.createBuilder()
@@ -129,15 +129,6 @@ public class YaclConfigIntegration {
                 .name(Component.translatable("config.shadowdrop.category.advanced"));
 
         advanced.option(Option.<String>createBuilder()
-                .name(Component.translatable("config.shadowdrop.slotBrColors"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.slotBrColors.tooltip")))
-                .binding("#FFFFFF",
-                        () -> String.join(", ", ShadowDropConfig.CLIENT.slotBrColors),
-                        val -> ShadowDropConfig.CLIENT.slotBrColors = new ArrayList<>(Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList()))
-                .controller(StringControllerBuilder::create)
-                .build());
-
-        advanced.option(Option.<String>createBuilder()
                 .name(Component.translatable("config.shadowdrop.translucentItems"))
                 .description(OptionDescription.of(Component.translatable("config.shadowdrop.translucentItems.tooltip")))
                 .binding("#c:glass, #c:glass_panes, #forge:glass, #forge:glass_panes, minecraft:beacon",
@@ -153,13 +144,6 @@ public class YaclConfigIntegration {
                         () -> String.join(", ", ShadowDropConfig.CLIENT.transparentItems),
                         val -> ShadowDropConfig.CLIENT.transparentItems = new ArrayList<>(Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList()))
                 .controller(StringControllerBuilder::create)
-                .build());
-
-        advanced.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.forceDepthRefresh"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.forceDepthRefresh.tooltip")))
-                .binding(false, () -> ShadowDropConfig.CLIENT.forceDepthRefresh, val -> ShadowDropConfig.CLIENT.forceDepthRefresh = val)
-                .controller(TickBoxControllerBuilder::create)
                 .build());
 
         return builder

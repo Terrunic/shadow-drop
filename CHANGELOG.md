@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed certain tooltips not rendering text (EMI++, Quark).
+- Code cleanups.
 
 ## [2.1.6] - 2026-07-19
 

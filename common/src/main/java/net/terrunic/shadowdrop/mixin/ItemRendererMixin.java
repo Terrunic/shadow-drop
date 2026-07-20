@@ -1,33 +1,26 @@
 package net.terrunic.shadowdrop.mixin;
 
-import net.terrunic.shadowdrop.ShadowDrop;
-import net.terrunic.shadowdrop.ShadowDropConfig;
-import net.terrunic.shadowdrop.render.ShadowBufferSource;
-import net.terrunic.shadowdrop.util.CachedPixel;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.terrunic.shadowdrop.ShadowDrop;
+import net.terrunic.shadowdrop.ShadowDropConfig;
+import net.terrunic.shadowdrop.render.ShadowBufferSource;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -36,21 +29,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 // Mixin to render drop shadows under items in GUI contexts
 @Mixin(value = ItemRenderer.class, priority = 500)
 public class ItemRendererMixin {
     @Unique
-    private static final List<CachedPixel> shadowdrop$cachedPixels = new ArrayList<>();
-    @Unique
-    private static final List<int[]> shadowdrop$cachedColors = new ArrayList<>();
-    @Unique
     private final static Matrix4f shadowdrop$screenPose = new Matrix4f();
-    @Unique
-    private static int shadowdrop$cachedColorsHash = 0;
     @Unique
     private static int[] shadowdrop$cachedShadowColor = {0, 0, 0};
     @Unique
@@ -79,18 +64,17 @@ public class ItemRendererMixin {
         }
         ShadowDrop.guiRenderDepth++;
 
+        shadowdrop$screenPose.set(poseStack.last().pose());
+        shadowdrop$screenNormal.set(poseStack.last().normal());
+
         if (ShadowDropConfig.CLIENT.offsetItems) {
             Matrix4f itemMatrix = poseStack.last().pose();
             float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
             poseStack.last().pose().translateLocal(0, 0, 32 * scaleZ);
         }
 
-        shadowdrop$screenPose.set(poseStack.last().pose());
-        shadowdrop$screenNormal.set(poseStack.last().normal());
-
         if (ShadowDrop.shouldRefresh) {
             ShadowDrop.shouldRefresh = false;
-            shadowdrop$cachedPixels.clear();
         }
 
         if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
@@ -99,7 +83,7 @@ public class ItemRendererMixin {
         int itemX = (int) itemMatrix.m30() - 8;
         int itemY = (int) itemMatrix.m31() - 8;
         boolean isInCursor = (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack));
-        boolean isInSlot = !isInCursor && shadowdrop$isInSlot(itemX, itemY, (int) itemMatrix.m32());
+        boolean isInSlot = !isInCursor && shadowdrop$isInSlot(itemStack, itemX, itemY, (int) itemMatrix.m32());
         boolean isInHotbar = shadowdrop$isInHotbarSlot(itemStack, itemX, itemY, itemMatrix.m32());
 
         boolean shouldRender = ShadowDropConfig.CLIENT.shadowsAlways
@@ -112,72 +96,65 @@ public class ItemRendererMixin {
         int shadowYOffset = ShadowDropConfig.CLIENT.shadowYOffset;
 
         shadowdrop$isRenderingShadow = true;
-
-        float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
-
-        // Render copy of item with wrapped buffer source to draw it as shadow
-        int[] shadowColor = shadowdrop$getShadowColor();
-        float r = shadowColor[0] / 255f;
-        float g = shadowColor[1] / 255f;
-        float b = shadowColor[2] / 255f;
-        float a = shadowdrop$getShadowAlpha(itemStack) / 255f;
-
-        ShadowBufferSource shadowBuffer = new ShadowBufferSource(bufferSource, r, g, b, a);
-
-        boolean isHoveredSlot = ShadowDrop.hoveredItem == itemStack;
-        boolean isCropped = !isInCursor
-                && !(ShadowDropConfig.CLIENT.uncropUnderCursor && isHoveredSlot && !isInHotbar)
-                && (ShadowDropConfig.CLIENT.cropToSlots && isInSlot
-                || ShadowDropConfig.CLIENT.cropToHotbar && isInHotbar);
-
         GuiGraphics guiGraphics = (GuiGraphics) ShadowDrop.currentGuiGraphics;
-        boolean useGuiScissor = isCropped && guiGraphics != null;
+        boolean scissorEnabled = false;
+        try {
+            float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
 
-        if (useGuiScissor) {
+            // Render copy of item with wrapped buffer source to draw it as shadow
+            int[] shadowColor = shadowdrop$getShadowColor();
+            float r = shadowColor[0] / 255f;
+            float g = shadowColor[1] / 255f;
+            float b = shadowColor[2] / 255f;
+            float a = shadowdrop$getShadowAlpha(itemStack) / 255f;
+
+            boolean isHoveredSlot = ShadowDrop.hoveredItem == itemStack;
+            boolean isCropped = !isInCursor
+                    && !(ShadowDropConfig.CLIENT.uncropUnderCursor && isHoveredSlot && !isInHotbar)
+                    && (ShadowDropConfig.CLIENT.cropToSlots && isInSlot
+                    || ShadowDropConfig.CLIENT.cropToHotbar && isInHotbar);
+
             int slotX = (int) shadowdrop$screenPose.m30() - 8;
             int slotY = (int) shadowdrop$screenPose.m31() - 8;
-            guiGraphics.enableScissor(slotX, slotY, slotX + 16, slotY + 16);
-        } else if (isCropped) {
-            Window window = minecraft.getWindow();
-            double scale = window.getGuiScale();
-            int slotX = (int) shadowdrop$screenPose.m30() - 8;
-            int slotY = (int) shadowdrop$screenPose.m31() - 8;
-            int scissorX = (int) (slotX * scale);
-            int scissorY = (int) (window.getHeight() - (slotY + 16) * scale);
-            int scissorW = (int) (16 * scale);
-            int scissorH = (int) (16 * scale);
-            RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
-        }
 
-        PoseStack shadowPoseStack = new PoseStack();
-        Matrix4f shadowMatrix = shadowPoseStack.last().pose();
-        shadowMatrix.set(shadowdrop$screenPose);
-        shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
-        shadowMatrix.translate(shadowXOffset / 16f, -shadowYOffset / 16f, 0);
-        shadowMatrix.translateLocal(0, 0, -1.5f * scaleZ * 16f);
-        shadowMatrix.m02(0f).m12(0f).m22(0f);
-
-        ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
-
-        // Fix for immediately fast HUD batching
-        if (bufferSource instanceof BufferSource immediate) {
-            boolean isImmediatelyFast = immediate.getClass().getName().contains("HudBatchingBufferSource")
-                    || immediate.getClass().getName().contains("BatchableBufferSource");
-            if (!isImmediatelyFast) {
-                RenderType lastType = shadowBuffer.getLastShadowType();
-                if (lastType != null) {
-                    immediate.endBatch(lastType);
-                }
+            if (isCropped && guiGraphics != null) {
+                int cropWidth = ShadowDrop.isRenderingEmiOutputSlot ? ShadowDrop.emiSlotWidth : 16;
+                int cropHeight = ShadowDrop.isRenderingEmiOutputSlot ? ShadowDrop.emiSlotHeight : 16;
+                int cropX = slotX - (cropWidth - 16) / 2;
+                int cropY = slotY - (cropHeight - 16) / 2;
+                guiGraphics.enableScissor(cropX, cropY, cropX + cropWidth, cropY + cropHeight);
+                scissorEnabled = true;
             }
-        }
 
-        if (useGuiScissor) {
-            guiGraphics.disableScissor();
-        } else if (isCropped) {
-            RenderSystem.disableScissor();
-        }
+            ShadowBufferSource shadowBuffer = new ShadowBufferSource(bufferSource, r, g, b, a);
 
-        shadowdrop$isRenderingShadow = false;
+            PoseStack shadowPoseStack = new PoseStack();
+            Matrix4f shadowMatrix = shadowPoseStack.last().pose();
+            shadowMatrix.set(shadowdrop$screenPose);
+            shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
+            shadowMatrix.translate(shadowXOffset / 16f, -shadowYOffset / 16f, 0);
+            shadowMatrix.translateLocal(0, 0, -1.5f * scaleZ * 16f);
+
+            shadowMatrix.m20(0f).m21(0f).m22(0f);
+            shadowMatrix.m02(0f).m12(0f);
+
+            ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
+
+            BufferSource immediate = null;
+            if (bufferSource instanceof BufferSource buf) {
+                immediate = buf;
+            } else if (guiGraphics != null) {
+                immediate = guiGraphics.bufferSource();
+            }
+            if (immediate != null) {
+                shadowBuffer.endShadowBatches(immediate);
+            }
+        } finally {
+            if (scissorEnabled) {
+                guiGraphics.disableScissor();
+            }
+            shadowdrop$isRenderingShadow = false;
+        }
     }
 
     @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" +
@@ -202,68 +179,12 @@ public class ItemRendererMixin {
 
     // Returns whether the bottom right corner of the given window position has valid slot corner color
     @Unique
-    private boolean shadowdrop$isInSlot(int x, int y, int z) {
-        // Only consider items at standard slot Z levels to prevent false positives in tooltips/etc
-        boolean isValidSlotZ = Math.abs(z - 150) < 5f || Math.abs(z - 182) < 5f || Math.abs(z - 250) < 5f || Math.abs(z - 282) < 5f;
-        if (!isValidSlotZ) return false;
-
-        // Check if item position matches a real container slot
-        if (minecraft.screen instanceof AbstractContainerScreen<?> containerScreen) {
-            AbstractContainerScreenAccessor accessor = (AbstractContainerScreenAccessor) containerScreen;
-            int guiLeft = accessor.shadowdrop$getLeftPos();
-            int guiTop = accessor.shadowdrop$getTopPos();
-
-            boolean matchesSlot = false;
-            for (Slot slot : containerScreen.getMenu().slots) {
-                int slotX = guiLeft + slot.x;
-                int slotY = guiTop + slot.y;
-                if (Math.abs(x - slotX) <= 1 && Math.abs(y - slotY) <= 1) {
-                    matchesSlot = true;
-                    break;
-                }
-            }
-            if (!matchesSlot) return false;
+    private boolean shadowdrop$isInSlot(ItemStack itemStack, int x, int y, int z) {
+        if (ShadowDrop.currentRenderingSlot != null || ShadowDrop.isRenderingEmiSlot) {
+            // Only consider items at standard slot Z levels to prevent false positives in tooltips/etc
+            return Math.abs(z - 150) < 5f || Math.abs(z - 182) < 5f || Math.abs(z - 250) < 5f || Math.abs(z - 282) < 5f;
         }
-
-        // Update cache if config changed
-        List<String> hexColors = ShadowDropConfig.CLIENT.slotBrColors;
-        int newColorsHash = hexColors.hashCode();
-
-        if (shadowdrop$cachedColorsHash != newColorsHash) {
-            shadowdrop$cachedColorsHash = newColorsHash;
-            shadowdrop$cachedColors.clear();
-            for (String c : hexColors) shadowdrop$cachedColors.add(shadowdrop$hexColorToRGB(c));
-            shadowdrop$cachedPixels.clear();
-        }
-
-        // Get actual screen position to read bottom-right corner pixel
-        Window window = minecraft.getWindow();
-        int scale = (int) window.getGuiScale();
-        int brX = (x + 16) * scale;
-        int brY = window.getHeight() - ((y + 16) * scale + 1);
-
-        // Check cache for if current pixel has already been checked
-        for (CachedPixel p : shadowdrop$cachedPixels) {
-            if (x == p.x() && y == p.y() && z == p.z()) return p.isSlotCorner();
-        }
-
-        // Read corner pixel color
-        ByteBuffer buffer = BufferUtils.createByteBuffer(3);
-        GL11.glReadPixels(brX, brY, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
-        int r = buffer.get(0) & 0xFF;
-        int g = buffer.get(1) & 0xFF;
-        int b = buffer.get(2) & 0xFF;
-
-        // Check if color is of slot corner
-        boolean isSlotCorner = false;
-        for (int[] c : shadowdrop$cachedColors) {
-            if (r == c[0] && g == c[1] && b == c[2]) {
-                isSlotCorner = true;
-                break;
-            }
-        }
-        shadowdrop$cachedPixels.add(new CachedPixel(x, y, z, isSlotCorner));
-        return isSlotCorner;
+        return false;
     }
 
     // Returns whether an item is currently being rendered in a HUD hotbar slot
@@ -271,8 +192,7 @@ public class ItemRendererMixin {
     private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, int x, int y, float z) {
         if (minecraft.player == null || minecraft.screen != null) return false;
 
-        // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge / 1.21 LayeredDraw.
-        // If offsetItems is enabled, it adds 32 to the Z coordinate
+        // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge (for some godforsaken reason)
         boolean isValidZ = Math.abs(z - 150) < 1f || Math.abs(z - 182) < 1f || Math.abs(z - 550) < 1f || Math.abs(z - 582) < 1f;
         if (!isValidZ) return false;
 

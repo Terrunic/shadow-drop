@@ -3,13 +3,16 @@
   "minVersion": "0.8",
   "package": "net.terrunic.shadowdrop.mixin",
   "compatibilityLevel": "JAVA_21",
+  "plugin": "net.terrunic.shadowdrop.mixin.ShadowDropMixinPlugin",
   "client": [
     "AbstractContainerScreenAccessor",
+    "AbstractContainerScreenMixin",
     "ItemRendererMixin",
     "GuiGraphicsMixin",
     "ScreenMixin"
   ],
   "mixins": [
+    "EmiSlotWidgetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

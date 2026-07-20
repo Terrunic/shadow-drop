@@ -1,12 +1,12 @@
 package net.terrunic.shadowdrop.platform;
 
-import net.terrunic.shadowdrop.platform.services.IPlatformHelper;
-import net.terrunic.shadowdrop.render.NeoVertexConsumerWrapper;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
+import net.terrunic.shadowdrop.platform.services.IPlatformHelper;
+import net.terrunic.shadowdrop.render.NeoVertexConsumerWrapper;
 
 import java.nio.file.Path;
 

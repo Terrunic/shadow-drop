@@ -1,8 +1,8 @@
 package net.terrunic.shadowdrop;
 
-import net.terrunic.shadowdrop.platform.Services;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.terrunic.shadowdrop.platform.Services;
 
 import java.io.File;
 import java.io.FileReader;
@@ -38,7 +38,7 @@ public class ShadowDropConfig {
         try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
             GSON.toJson(CLIENT, writer);
         } catch (IOException e) {
-            // Log or ignore
+            ShadowDrop.LOGGER.error("Failed to save Shadow Drop config!", e);
         }
     }
 
@@ -56,9 +56,7 @@ public class ShadowDropConfig {
         public boolean cropToSlots = true;
         public boolean cropToHotbar = true;
         public boolean uncropUnderCursor = false;
-        public List<String> slotBrColors = new ArrayList<>(List.of("#FFFFFF"));
         public List<String> translucentItems = new ArrayList<>(Arrays.asList("#c:glass", "#c:glass_panes", "#forge:glass", "#forge:glass_panes", "minecraft:beacon"));
         public List<String> transparentItems = new ArrayList<>();
-        public boolean forceDepthRefresh = false;
     }
 }

@@ -33,12 +33,8 @@
   "config.shadowdrop.uncropUnderCursor.tooltip": "Keeps shadows uncropped when items are hovered.",
 
   "config.shadowdrop.category.advanced": "Advanced Settings",
-  "config.shadowdrop.slotBrColors": "Slot Corner Colors",
-  "config.shadowdrop.slotBrColors.tooltip": "HEX color(s) of the slot's bottom-right pixel, used to detect slots (comma-separated).",
   "config.shadowdrop.translucentItems": "Translucent Items",
-  "config.shadowdrop.translucentItems.tooltip": "Items/tags that render shadows with 50% opacity (comma-separated).",
+  "config.shadowdrop.translucentItems.tooltip": "Items whose shadows should be rendered half-transparent (e.g., Glass) (comma-separated IDs/Tags).",
   "config.shadowdrop.transparentItems": "Transparent Items",
-  "config.shadowdrop.transparentItems.tooltip": "Items/tags that never render shadows (comma-separated).",
-  "config.shadowdrop.forceDepthRefresh": "Force Depth Refresh",
-  "config.shadowdrop.forceDepthRefresh.tooltip": "Forces a depth buffer refresh. Fixes overlap issues but might cause rendering bugs."
+  "config.shadowdrop.transparentItems.tooltip": "Items that should NOT drop any shadow (comma-separated IDs/Tags)."
 }
