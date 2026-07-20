@@ -16,10 +16,10 @@
   "environment": "client",
   "entrypoints": {
     "main": [
-      "com.evandev.shadowdrop.FabricShadowDrop"
+      "net.terrunic.shadowdrop.FabricShadowDrop"
     ],
     "modmenu": [
-      "com.evandev.shadowdrop.compat.ModMenuIntegration"
+      "net.terrunic.shadowdrop.compat.ModMenuIntegration"
     ]
   },
   "mixins": [
