@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with mods that cancel item rendering.
+- Fixed certain tooltips not rendering text (EMI++, Quark).

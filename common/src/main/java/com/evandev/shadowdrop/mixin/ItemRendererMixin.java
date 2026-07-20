@@ -5,9 +5,11 @@ import com.evandev.shadowdrop.ShadowDropConfig;
 import com.evandev.shadowdrop.render.ShadowBufferSource;
 import com.evandev.shadowdrop.util.CachedPixel;
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -17,6 +19,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -134,6 +137,16 @@ public class ItemRendererMixin {
             int slotX = (int) shadowdrop$screenPose.m30() - 8;
             int slotY = (int) shadowdrop$screenPose.m31() - 8;
             guiGraphics.enableScissor(slotX, slotY, slotX + 16, slotY + 16);
+        } else if (isCropped) {
+            Window window = minecraft.getWindow();
+            double scale = window.getGuiScale();
+            int slotX = (int) shadowdrop$screenPose.m30() - 8;
+            int slotY = (int) shadowdrop$screenPose.m31() - 8;
+            int scissorX = (int) (slotX * scale);
+            int scissorY = (int) (window.getHeight() - (slotY + 16) * scale);
+            int scissorW = (int) (16 * scale);
+            int scissorH = (int) (16 * scale);
+            RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
         }
 
         PoseStack shadowPoseStack = new PoseStack();
@@ -160,6 +173,8 @@ public class ItemRendererMixin {
 
         if (useGuiScissor) {
             guiGraphics.disableScissor();
+        } else if (isCropped) {
+            RenderSystem.disableScissor();
         }
 
         shadowdrop$isRenderingShadow = false;
@@ -177,6 +192,11 @@ public class ItemRendererMixin {
 
         if (ShadowDrop.guiRenderDepth > 0) {
             ShadowDrop.guiRenderDepth--;
+            if (ShadowDrop.guiRenderDepth == 0 && ShadowDropConfig.CLIENT.offsetItems) {
+                Matrix4f itemMatrix = poseStack.last().pose();
+                float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
+                poseStack.last().pose().translateLocal(0, 0, -32 * scaleZ);
+            }
         }
     }
 
@@ -186,6 +206,24 @@ public class ItemRendererMixin {
         // Only consider items at standard slot Z levels to prevent false positives in tooltips/etc
         boolean isValidSlotZ = Math.abs(z - 150) < 5f || Math.abs(z - 182) < 5f || Math.abs(z - 250) < 5f || Math.abs(z - 282) < 5f;
         if (!isValidSlotZ) return false;
+
+        // Check if item position matches a real container slot
+        if (minecraft.screen instanceof AbstractContainerScreen<?> containerScreen) {
+            AbstractContainerScreenAccessor accessor = (AbstractContainerScreenAccessor) containerScreen;
+            int guiLeft = accessor.shadowdrop$getLeftPos();
+            int guiTop = accessor.shadowdrop$getTopPos();
+
+            boolean matchesSlot = false;
+            for (Slot slot : containerScreen.getMenu().slots) {
+                int slotX = guiLeft + slot.x;
+                int slotY = guiTop + slot.y;
+                if (Math.abs(x - slotX) <= 1 && Math.abs(y - slotY) <= 1) {
+                    matchesSlot = true;
+                    break;
+                }
+            }
+            if (!matchesSlot) return false;
+        }
 
         // Update cache if config changed
         List<String> hexColors = ShadowDropConfig.CLIENT.slotBrColors;
@@ -231,7 +269,7 @@ public class ItemRendererMixin {
     // Returns whether an item is currently being rendered in a HUD hotbar slot
     @Unique
     private boolean shadowdrop$isInHotbarSlot(ItemStack pItemStack, int x, int y, float z) {
-        if (minecraft.player == null) return false;
+        if (minecraft.player == null || minecraft.screen != null) return false;
 
         // HUD hotbar items are rendered at Z = 150 (Fabric/Vanilla) or Z = 550 on NeoForge / 1.21 LayeredDraw.
         // If offsetItems is enabled, it adds 32 to the Z coordinate

@@ -4,6 +4,7 @@
   "package": "com.evandev.shadowdrop.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AbstractContainerScreenAccessor",
     "ItemRendererMixin",
     "GuiGraphicsMixin",
     "ScreenMixin"
