@@ -13,6 +13,8 @@ public class ShadowDrop {
     public static ItemStack hoveredItem = ItemStack.EMPTY;
     // Tracker for current active GuiGraphics
     public static Object currentGuiGraphics = null;
+    // Tracker for GUI item render depth
+    public static int guiRenderDepth = 0;
 
     public static void init() {
         ShadowDropConfig.load();

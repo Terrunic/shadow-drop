@@ -55,8 +55,6 @@ public class ItemRendererMixin {
     @Unique
     private static boolean shadowdrop$isRenderingShadow = false;
     @Unique
-    private static int shadowdrop$guiRenderDepth = 0;
-    @Unique
     private final Matrix3f shadowdrop$screenNormal = new Matrix3f();
     @Final
     @Shadow
@@ -72,11 +70,11 @@ public class ItemRendererMixin {
         if (itemStack.isEmpty() || displayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
             return;
 
-        if (shadowdrop$guiRenderDepth > 0) {
-            shadowdrop$guiRenderDepth++;
+        if (ShadowDrop.guiRenderDepth > 0) {
+            ShadowDrop.guiRenderDepth++;
             return;
         }
-        shadowdrop$guiRenderDepth++;
+        ShadowDrop.guiRenderDepth++;
 
         if (ShadowDropConfig.CLIENT.offsetItems) {
             Matrix4f itemMatrix = poseStack.last().pose();
@@ -177,8 +175,8 @@ public class ItemRendererMixin {
         if (itemStack.isEmpty() || displayContext != ItemDisplayContext.GUI || shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled)
             return;
 
-        if (shadowdrop$guiRenderDepth > 0) {
-            shadowdrop$guiRenderDepth--;
+        if (ShadowDrop.guiRenderDepth > 0) {
+            ShadowDrop.guiRenderDepth--;
         }
     }
 
