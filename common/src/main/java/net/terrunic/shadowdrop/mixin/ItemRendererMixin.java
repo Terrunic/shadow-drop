@@ -117,7 +117,16 @@ public class ItemRendererMixin {
             int slotX = (int) shadowdrop$screenPose.m30() - 8;
             int slotY = (int) shadowdrop$screenPose.m31() - 8;
 
+            BufferSource immediate = null;
+            if (bufferSource instanceof BufferSource buf) {
+                immediate = buf;
+            } else if (guiGraphics != null) {
+                immediate = guiGraphics.bufferSource();
+            }
+
             if (isCropped && guiGraphics != null) {
+                immediate.endBatch();
+
                 int cropWidth = ShadowDrop.isRenderingEmiOutputSlot ? ShadowDrop.emiSlotWidth : 16;
                 int cropHeight = ShadowDrop.isRenderingEmiOutputSlot ? ShadowDrop.emiSlotHeight : 16;
                 int cropX = slotX - (cropWidth - 16) / 2;
@@ -140,12 +149,6 @@ public class ItemRendererMixin {
 
             ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 
-            BufferSource immediate = null;
-            if (bufferSource instanceof BufferSource buf) {
-                immediate = buf;
-            } else if (guiGraphics != null) {
-                immediate = guiGraphics.bufferSource();
-            }
             if (immediate != null) {
                 shadowBuffer.endShadowBatches(immediate);
             }
