@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with Immediately Fast.
+- Fixed issues with mods that cancel item rendering.
