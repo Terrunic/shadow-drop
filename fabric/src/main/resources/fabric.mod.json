@@ -8,18 +8,21 @@
     "${mod_author}"
   ],
   "contact": {
-    "homepage": "https://github.com/evanbones/Shadow-Drop",
-    "sources": "https://github.com/evanbones/Shadow-Drop"
+    "homepage": "https://github.com/Terrunic/shadow-drop",
+    "sources": "https://github.com/Terrunic/shadow-drop"
   },
   "license": "${license}",
   "icon": "icon.png",
   "environment": "client",
   "entrypoints": {
     "main": [
-      "com.evandev.shadowdrop.FabricShadowDrop"
+      "net.terrunic.shadowdrop.FabricShadowDrop"
+    ],
+    "client": [
+      "net.terrunic.shadowdrop.FabricShadowDropClient"
     ],
     "modmenu": [
-      "com.evandev.shadowdrop.compat.ModMenuIntegration"
+      "net.terrunic.shadowdrop.compat.ModMenuIntegration"
     ]
   },
   "mixins": [

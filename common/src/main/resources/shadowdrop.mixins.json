@@ -1,11 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.evandev.shadowdrop.mixin",
+  "package": "net.terrunic.shadowdrop.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "${mod_id}.refmap.json",
   "client": [
+    "GameRendererMixin",
     "GuiGraphicsMixin",
+    "GuiMixin",
     "ItemRendererMixin",
     "ScreenMixin",
     "accessor.AbstractContainerScreenAccessor",
