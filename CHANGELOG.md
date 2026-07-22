@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2026-07-22
 
+### Added
+
+- EMI batched rendering compatibility
+
 ### Changed
 
 - Merged with the Shadows Redropped fork by evanbones!

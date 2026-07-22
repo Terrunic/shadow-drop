@@ -8,14 +8,6 @@ A client-side mod that adds subtle drop shadows to items in GUIs, at a small cos
 
 Shadows are highly configurable through the generated config file, or through a clearer config menu if [YACL](https://modrinth.com/mod/yacl) is installed.
 
-Customise their color, opacity, position, and display rules!
-
----
-
-⚠ **Mods that may need configuration for proper compatibility:**
-
-- **Accelerated Rendering**: disable `gui_acceleration`
-
 ---
 
 **License**

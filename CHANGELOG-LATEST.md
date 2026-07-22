@@ -1,3 +1,7 @@
+### Added
+
+- EMI batched rendering compatibility
+
 ### Changed
 
 - Merged with the Shadows Redropped fork by evanbones!
