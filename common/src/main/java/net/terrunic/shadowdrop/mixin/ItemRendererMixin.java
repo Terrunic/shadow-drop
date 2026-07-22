@@ -98,7 +98,10 @@ public class ItemRendererMixin {
             shadowContext = ShadowContext.HOTBAR;
         }
         else if (ShadowDrop.hoveredItem == itemStack) {
-            shadowContext = ShadowContext.HOVER;
+            if (!ShadowDrop.hoveredItemRendered) {
+                ShadowDrop.hoveredItemRendered = true;
+                shadowContext = ShadowContext.HOVER;
+            }
         }
         else if (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack)) {
             shadowContext = ShadowContext.CURSOR;

@@ -49,5 +49,6 @@ public class ScreenMixin {
         } else {
             ShadowDrop.hoveredItem = null;
         }
+        ShadowDrop.hoveredItemRendered = false;
     }
 }

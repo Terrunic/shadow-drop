@@ -16,6 +16,8 @@ public class ShadowDrop {
     public static boolean shouldRefresh = false;
     // Tracker for item currently under cursor
     public static ItemStack hoveredItem = null;
+    // Tracker for if currently hovered item has already been rendered this frame
+    public static boolean hoveredItemRendered = false;
     // Tracker for if level is rendering instead of a GUI
     public static boolean isLevelRendering = false;
     // Tracker for if hotbar is rendering instead of a GUI
