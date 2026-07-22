@@ -1,3 +1,3 @@
 ### Fixed
 
-- Properly fixed rendering states.
+- Fixed incompatibility with Raised.

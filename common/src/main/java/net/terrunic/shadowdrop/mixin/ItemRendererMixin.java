@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.terrunic.shadowdrop.ShadowDrop;
 import net.terrunic.shadowdrop.ShadowDropConfig;
+import net.terrunic.shadowdrop.compat.RaisedCompat;
 import net.terrunic.shadowdrop.render.ShadowBufferSource;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -214,19 +215,25 @@ public class ItemRendererMixin {
         Window window = minecraft.getWindow();
         int guiWidth = window.getGuiScaledWidth();
         int guiHeight = window.getGuiScaledHeight();
+
+        int raisedX = RaisedCompat.getHotbarXOffset();
+        int raisedY = RaisedCompat.getHotbarYOffset();
+        int unshiftedX = x - raisedX;
+        int unshiftedY = y - raisedY;
+
         int expectedY = guiHeight - 19;
 
-        if (Math.abs(y - expectedY) > 2) return false;
+        if (Math.abs(unshiftedY - expectedY) > 2) return false;
 
         int midX = guiWidth / 2;
         for (int i = 0; i < 9; i++) {
             int expectedX = midX - 90 + i * 20 + 2;
-            if (Math.abs(x - expectedX) <= 2) return true;
+            if (Math.abs(unshiftedX - expectedX) <= 2) return true;
         }
 
         int offhandX1 = midX - 117;
         int offhandX2 = midX + 101;
-        return Math.abs(x - offhandX1) <= 2 || Math.abs(x - offhandX2) <= 2;
+        return Math.abs(unshiftedX - offhandX1) <= 2 || Math.abs(unshiftedX - offhandX2) <= 2;
     }
 
     // Get RGB color for item shadow
