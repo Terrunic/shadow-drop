@@ -184,7 +184,7 @@ public class ItemRendererMixin {
     private void shadowdrop$onRenderReturn(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (shadowdrop$isRenderInvalid(itemStack, displayContext)) return;
         if (ShadowDrop.guiRenderDepth > 0) {
-            ShadowDrop.guiRenderDepth--;
+            ShadowDrop.guiRenderDepth = 0;
         }
     }
 
