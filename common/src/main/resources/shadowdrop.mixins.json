@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.evandev.shadowdrop.mixin",
+  "package": "net.terrunic.shadowdrop.mixin",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
   ],
