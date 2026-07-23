@@ -53,51 +53,51 @@ public class YaclIntegration {
                 .name(Component.translatable("config.shadowdrop.shadowXOffset"))
                 .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowXOffset.tooltip")))
                 .binding(1, () -> ShadowDropConfig.CLIENT.shadowXOffset, val -> ShadowDropConfig.CLIENT.shadowXOffset = val)
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt).range(0, 4).step(1))
+                .controller(opt -> IntegerSliderControllerBuilder.create(opt).range(-4, 4).step(1))
                 .build());
 
         general.option(Option.<Integer>createBuilder()
                 .name(Component.translatable("config.shadowdrop.shadowYOffset"))
                 .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowYOffset.tooltip")))
                 .binding(1, () -> ShadowDropConfig.CLIENT.shadowYOffset, val -> ShadowDropConfig.CLIENT.shadowYOffset = val)
-                .controller(opt -> IntegerSliderControllerBuilder.create(opt).range(0, 4).step(1))
+                .controller(opt -> IntegerSliderControllerBuilder.create(opt).range(-4, 4).step(1))
                 .build());
 
-        general.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.offsetItems"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.offsetItems.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.offsetItems, val -> ShadowDropConfig.CLIENT.offsetItems = val)
+        ConfigCategory.Builder shadows = ConfigCategory.createBuilder()
+                .name(Component.translatable("config.shadowdrop.category.shadows"));
+
+        shadows.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.hotbarShadows"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.hotbarShadows.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.hotbarShadows, val -> ShadowDropConfig.CLIENT.hotbarShadows = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
-        ConfigCategory.Builder contexts = ConfigCategory.createBuilder()
-                .name(Component.translatable("config.shadowdrop.category.contexts"));
-
-        contexts.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.shadowsAlways"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowsAlways.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.shadowsAlways, val -> ShadowDropConfig.CLIENT.shadowsAlways = val)
+        shadows.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.slotShadows"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.slotShadows.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.slotShadows, val -> ShadowDropConfig.CLIENT.slotShadows = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
-        contexts.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.shadowsInSlots"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowsInSlots.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.shadowsInSlots, val -> ShadowDropConfig.CLIENT.shadowsInSlots = val)
+        shadows.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.hoverShadows"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.hoverShadows.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.hoverShadows, val -> ShadowDropConfig.CLIENT.hoverShadows = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
-        contexts.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.shadowsInHotbar"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowsInHotbar.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.shadowsInHotbar, val -> ShadowDropConfig.CLIENT.shadowsInHotbar = val)
+        shadows.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.cursorShadows"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.cursorShadows.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.cursorShadows, val -> ShadowDropConfig.CLIENT.cursorShadows = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
-        contexts.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.shadowsInCursor"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.shadowsInCursor.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.shadowsInCursor, val -> ShadowDropConfig.CLIENT.shadowsInCursor = val)
+        shadows.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.elsewhereShadows"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.elsewhereShadows.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.elsewhereShadows, val -> ShadowDropConfig.CLIENT.elsewhereShadows = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
@@ -105,23 +105,23 @@ public class YaclIntegration {
                 .name(Component.translatable("config.shadowdrop.category.cropping"));
 
         cropping.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.cropToSlots"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.cropToSlots.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.cropToSlots, val -> ShadowDropConfig.CLIENT.cropToSlots = val)
+                .name(Component.translatable("config.shadowdrop.hotbarCropped"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.hotbarCropped.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.hotbarCropped, val -> ShadowDropConfig.CLIENT.hotbarCropped = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
         cropping.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.cropToHotbar"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.cropToHotbar.tooltip")))
-                .binding(true, () -> ShadowDropConfig.CLIENT.cropToHotbar, val -> ShadowDropConfig.CLIENT.cropToHotbar = val)
+                .name(Component.translatable("config.shadowdrop.slotCropped"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.slotCropped.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.slotCropped, val -> ShadowDropConfig.CLIENT.slotCropped = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
         cropping.option(Option.<Boolean>createBuilder()
-                .name(Component.translatable("config.shadowdrop.uncropUnderCursor"))
-                .description(OptionDescription.of(Component.translatable("config.shadowdrop.uncropUnderCursor.tooltip")))
-                .binding(false, () -> ShadowDropConfig.CLIENT.uncropUnderCursor, val -> ShadowDropConfig.CLIENT.uncropUnderCursor = val)
+                .name(Component.translatable("config.shadowdrop.hoverCropped"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.hoverCropped.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.hoverCropped, val -> ShadowDropConfig.CLIENT.hoverCropped = val)
                 .controller(TickBoxControllerBuilder::create)
                 .build());
 
@@ -131,7 +131,7 @@ public class YaclIntegration {
         advanced.option(Option.<String>createBuilder()
                 .name(Component.translatable("config.shadowdrop.translucentItems"))
                 .description(OptionDescription.of(Component.translatable("config.shadowdrop.translucentItems.tooltip")))
-                .binding("#c:glass, #c:glass_panes, #forge:glass, #forge:glass_panes, minecraft:beacon",
+                .binding("#c:glass_blocks, #c:glass_panes, #forge:glass, #forge:glass_panes, minecraft:beacon",
                         () -> String.join(", ", ShadowDropConfig.CLIENT.translucentItems),
                         val -> ShadowDropConfig.CLIENT.translucentItems = new ArrayList<>(Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList()))
                 .controller(StringControllerBuilder::create)
@@ -146,9 +146,16 @@ public class YaclIntegration {
                 .controller(StringControllerBuilder::create)
                 .build());
 
+        advanced.option(Option.<Boolean>createBuilder()
+                .name(Component.translatable("config.shadowdrop.offsetItems"))
+                .description(OptionDescription.of(Component.translatable("config.shadowdrop.offsetItems.tooltip")))
+                .binding(true, () -> ShadowDropConfig.CLIENT.offsetItems, val -> ShadowDropConfig.CLIENT.offsetItems = val)
+                .controller(TickBoxControllerBuilder::create)
+                .build());
+
         return builder
                 .category(general.build())
-                .category(contexts.build())
+                .category(shadows.build())
                 .category(cropping.build())
                 .category(advanced.build())
                 .build()

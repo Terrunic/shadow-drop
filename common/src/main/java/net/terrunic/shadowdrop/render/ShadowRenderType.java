@@ -1,5 +1,6 @@
 package net.terrunic.shadowdrop.render;
 
+import net.terrunic.shadowdrop.shader.ShadowDropShaders;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.Util;
@@ -9,9 +10,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.function.Function;
 
-/*
- * Copy of entityTranslucentCull with a strict < depth test
- */
+// Custom shadow render type based on entityTranslucentCull with a strict < depth test
 public class ShadowRenderType extends RenderType {
     public static final VertexFormat FORMAT = DefaultVertexFormat.NEW_ENTITY;
     private static final DepthTestStateShard LESS_DEPTH_TEST = new DepthTestStateShard("<", GL11.GL_LESS);
@@ -24,13 +23,12 @@ public class ShadowRenderType extends RenderType {
             true,
             true,
             CompositeState.builder()
-                    .setShaderState(RENDERTYPE_ENTITY_TRANSLUCENT_CULL_SHADER)
+                    .setShaderState(new ShaderStateShard(ShadowDropShaders::getShadowShader))
                     .setTextureState(new TextureStateShard(texture, false, false))
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
                     .setLightmapState(LIGHTMAP)
                     .setOverlayState(OVERLAY)
                     .setDepthTestState(LESS_DEPTH_TEST)
-                    .setWriteMaskState(COLOR_DEPTH_WRITE)
                     .createCompositeState(true)));
 
     private ShadowRenderType(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumbling, boolean sortOnUpload, Runnable setupState, Runnable clearState) {

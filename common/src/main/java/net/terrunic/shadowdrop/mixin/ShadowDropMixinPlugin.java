@@ -12,7 +12,7 @@ public class ShadowDropMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        isEmiLoaded = checkClass("dev.emi.emi.api.widget.SlotWidget");
+        isEmiLoaded = checkClass("dev.emi.emi.screen.RecipeScreen");
     }
 
     private boolean checkClass(String className) {
@@ -27,7 +27,7 @@ public class ShadowDropMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith("EmiSlotWidgetMixin")) {
+        if (mixinClassName.endsWith("EmiRecipeScreenMixin")) {
             return isEmiLoaded;
         }
         return true;

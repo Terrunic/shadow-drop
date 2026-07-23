@@ -1,11 +1,12 @@
 package net.terrunic.shadowdrop;
 
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.terrunic.shadowdrop.compat.EmiCompat;
 import net.terrunic.shadowdrop.platform.Services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
 
 public class ShadowDrop {
     public static final String MOD_ID = "shadowdrop";
@@ -15,18 +16,18 @@ public class ShadowDrop {
     public static boolean shouldRefresh = false;
     // Tracker for item currently under cursor
     public static ItemStack hoveredItem = null;
+    // Tracker for if currently hovered item has already been rendered this frame
+    public static boolean hoveredItemRendered = false;
+    // Tracker for if level is rendering instead of a GUI
+    public static boolean isLevelRendering = false;
+    // Tracker for if hotbar is rendering instead of a GUI
+    public static boolean isHotbarRendering = false;
     // Tracker for current active GuiGraphics
     public static Object currentGuiGraphics = null;
-    // Tracker for GUI item render depth
+    // Tracker for current GUI render depth
     public static int guiRenderDepth = 0;
-    // Tracker for slot currently being rendered in container screens
-    public static Slot currentRenderingSlot = null;
-    public static boolean isRenderingEmiSlot = false;
-    // Whether the EMI slot currently being rendered is a larger output slot
-    public static boolean isRenderingEmiOutputSlot = false;
-    // Bounds of the EMI slot currently being rendered
-    public static int emiSlotWidth = 16;
-    public static int emiSlotHeight = 16;
+    // Tracker for current GUI pixels on initial render (before elements added)
+    public static ByteBuffer guiInitRenderBuffer = null;
 
     public static void init() {
         ShadowDropConfig.load();

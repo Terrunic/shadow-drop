@@ -46,9 +46,6 @@ dependencies {
 
     // YACL
     implementation "maven.modrinth:yacl:${yacl_version}-neoforge"
-
-    // Raised
-    compileOnly "maven.modrinth:raised:NeoForge-${raised_version}"
 }
 
 publishMods {

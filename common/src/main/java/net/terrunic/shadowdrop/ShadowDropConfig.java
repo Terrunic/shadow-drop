@@ -49,14 +49,15 @@ public class ShadowDropConfig {
         public int shadowXOffset = 1;
         public int shadowYOffset = 1;
         public boolean offsetItems = true;
-        public boolean shadowsAlways = true;
-        public boolean shadowsInSlots = true;
-        public boolean shadowsInHotbar = true;
-        public boolean shadowsInCursor = true;
-        public boolean cropToSlots = true;
-        public boolean cropToHotbar = true;
-        public boolean uncropUnderCursor = false;
-        public List<String> translucentItems = new ArrayList<>(Arrays.asList("#c:glass", "#c:glass_panes", "#forge:glass", "#forge:glass_panes", "minecraft:beacon"));
+        public boolean hotbarShadows = true;
+        public boolean slotShadows = true;
+        public boolean hoverShadows = true;
+        public boolean cursorShadows = true;
+        public boolean elsewhereShadows = true;
+        public boolean hotbarCropped = true;
+        public boolean slotCropped = true;
+        public boolean hoverCropped = true;
+        public List<String> translucentItems = new ArrayList<>(Arrays.asList("#c:glass_blocks", "#c:glass_panes", "#forge:glass", "#forge:glass_panes", "minecraft:beacon"));
         public List<String> transparentItems = new ArrayList<>();
     }
 }

@@ -18,6 +18,9 @@
     "main": [
       "net.terrunic.shadowdrop.FabricShadowDrop"
     ],
+    "client": [
+      "net.terrunic.shadowdrop.FabricShadowDropClient"
+    ],
     "modmenu": [
       "net.terrunic.shadowdrop.compat.ModMenuIntegration"
     ]
