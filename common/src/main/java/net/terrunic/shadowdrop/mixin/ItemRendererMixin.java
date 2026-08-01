@@ -77,9 +77,6 @@ public class ItemRendererMixin {
         // Cancel if marked as transparent
         if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
 
-        // Cancel for custom renderers
-        if (model.isCustomRenderer()) return;
-
         // Offset item to ensure space behind for shadow
         if (ShadowDropConfig.CLIENT.offsetItems) {
             Matrix4f itemMatrix = poseStack.last().pose();
