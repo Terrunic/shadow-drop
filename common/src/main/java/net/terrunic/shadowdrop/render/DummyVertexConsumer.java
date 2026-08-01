@@ -26,17 +26,17 @@ public class DummyVertexConsumer implements VertexConsumer {
 
     @Override
     public VertexConsumer overlayCoords(int i, int i1) {
-        return null;
+        return this;
     }
 
     @Override
     public VertexConsumer uv2(int i, int i1) {
-        return null;
+        return this;
     }
 
     @Override
     public VertexConsumer normal(float v, float v1, float v2) {
-        return null;
+        return this;
     }
 
     @Override

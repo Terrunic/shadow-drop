@@ -1,10 +1,5 @@
 package net.terrunic.shadowdrop.mixin;
 
-import net.terrunic.shadowdrop.ShadowDrop;
-import net.terrunic.shadowdrop.ShadowDropConfig;
-import net.terrunic.shadowdrop.render.ShadowBufferSource;
-import net.terrunic.shadowdrop.util.CachedPixel;
-import net.terrunic.shadowdrop.util.ShadowContext;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
@@ -20,11 +15,16 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.terrunic.shadowdrop.ShadowDrop;
+import net.terrunic.shadowdrop.ShadowDropConfig;
+import net.terrunic.shadowdrop.render.ShadowBufferSource;
+import net.terrunic.shadowdrop.util.CachedPixel;
+import net.terrunic.shadowdrop.util.PixelReader;
+import net.terrunic.shadowdrop.util.ShadowContext;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -42,31 +42,28 @@ import java.util.List;
 public class ItemRendererMixin {
     // Cache
     @Unique
+    private static final int shadowdrop$MAX_CACHED_PIXELS = 4096;
+    @Unique
     private static final List<CachedPixel> shadowdrop$cachedPixels = new ArrayList<>();
+    @Unique
+    private static final ByteBuffer shadowdrop$pixelBuffer = BufferUtils.createByteBuffer(16);
+    @Unique
+    private final static Matrix4f shadowdrop$screenPose = new Matrix4f();
     @Unique
     private static int[] shadowdrop$cachedShadowColor = {0, 0, 0};
     @Unique
     private static int shadowdrop$cachedShadowColorHash = 0;
-
     // Trackers
     @Unique
     private static boolean shadowdrop$isRenderingShadow = false;
     @Unique
     private final Matrix3f shadowdrop$screenNormal = new Matrix3f();
-    @Unique
-    private final static Matrix4f shadowdrop$screenPose = new Matrix4f();
-
     // Shadows
     @Final
     @Shadow
     private Minecraft minecraft;
 
-    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" +
-            "Lnet/minecraft/world/item/ItemDisplayContext;" +
-            "ZLcom/mojang/blaze3d/vertex/PoseStack;" +
-            "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-            "IILnet/minecraft/client/resources/model/BakedModel;)V",
-            at = @At("HEAD"))
+    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" + "Lnet/minecraft/world/item/ItemDisplayContext;" + "ZLcom/mojang/blaze3d/vertex/PoseStack;" + "Lnet/minecraft/client/renderer/MultiBufferSource;" + "IILnet/minecraft/client/resources/model/BakedModel;)V", at = @At("HEAD"))
     private void shadowdrop$renderShadow(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (shadowdrop$isRenderInvalid(itemStack, displayContext)) return;
         if (ShadowDrop.guiRenderDepth++ > 0) return;
@@ -79,6 +76,9 @@ public class ItemRendererMixin {
 
         // Cancel if marked as transparent
         if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
+
+        // Cancel for custom renderers
+        if (model.isCustomRenderer()) return;
 
         // Offset item to ensure space behind for shadow
         if (ShadowDropConfig.CLIENT.offsetItems) {
@@ -96,34 +96,31 @@ public class ItemRendererMixin {
 
         if (ShadowDrop.isHotbarRendering) {
             shadowContext = ShadowContext.HOTBAR;
-        }
-        else if (ShadowDrop.hoveredItem == itemStack) {
+        } else if (ShadowDrop.hoveredItem == itemStack) {
             if (!ShadowDrop.hoveredItemRendered) {
                 ShadowDrop.hoveredItemRendered = true;
                 shadowContext = ShadowContext.HOVER;
             }
-        }
-        else if (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack)) {
+        } else if (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack)) {
             shadowContext = ShadowContext.CURSOR;
-        }
-        else if (shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32())) {
+        } else if (shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32())) {
             shadowContext = ShadowContext.SLOT;
         }
 
         boolean shouldRender = switch (shadowContext) {
-            case HOTBAR    -> ShadowDropConfig.CLIENT.hotbarShadows;
-            case SLOT      -> ShadowDropConfig.CLIENT.slotShadows;
-            case HOVER     -> ShadowDropConfig.CLIENT.hoverShadows;
-            case CURSOR    -> ShadowDropConfig.CLIENT.cursorShadows;
+            case HOTBAR -> ShadowDropConfig.CLIENT.hotbarShadows;
+            case SLOT -> ShadowDropConfig.CLIENT.slotShadows;
+            case HOVER -> ShadowDropConfig.CLIENT.hoverShadows;
+            case CURSOR -> ShadowDropConfig.CLIENT.cursorShadows;
             case ELSEWHERE -> ShadowDropConfig.CLIENT.elsewhereShadows;
         };
         if (!shouldRender) return;
 
         boolean isCropped = guiGraphics != null && switch (shadowContext) {
             case HOTBAR -> ShadowDropConfig.CLIENT.hotbarCropped;
-            case SLOT   -> ShadowDropConfig.CLIENT.slotCropped;
-            case HOVER  -> ShadowDropConfig.CLIENT.hoverCropped;
-            default     -> false;
+            case SLOT -> ShadowDropConfig.CLIENT.slotCropped;
+            case HOVER -> ShadowDropConfig.CLIENT.hoverCropped;
+            default -> false;
         };
 
         // Begin shadow rendering
@@ -162,25 +159,21 @@ public class ItemRendererMixin {
         shadowMatrix.translateLocal(0, 0, -1.5f * scaleZ * 16f);
         shadowMatrix.m02(0f).m12(0f).m22(0f);
 
-        ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
+        try {
+            ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
 
-        // Check to end batches
-        if (immediate != null) {
-            shadowBuffer.endShadowBatches(immediate);
+            if (immediate != null) {
+                shadowBuffer.endShadowBatches(immediate);
+            }
+        } finally {
+            if (isCropped) {
+                guiGraphics.disableScissor();
+            }
+            shadowdrop$isRenderingShadow = false;
         }
-
-        if (isCropped) {
-            guiGraphics.disableScissor();
-        }
-        shadowdrop$isRenderingShadow = false;
     }
 
-    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" +
-        "Lnet/minecraft/world/item/ItemDisplayContext;" +
-        "ZLcom/mojang/blaze3d/vertex/PoseStack;" +
-        "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-        "IILnet/minecraft/client/resources/model/BakedModel;)V",
-        at = @At("RETURN"))
+    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" + "Lnet/minecraft/world/item/ItemDisplayContext;" + "ZLcom/mojang/blaze3d/vertex/PoseStack;" + "Lnet/minecraft/client/renderer/MultiBufferSource;" + "IILnet/minecraft/client/resources/model/BakedModel;)V", at = @At("RETURN"))
     private void shadowdrop$onRenderReturn(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (shadowdrop$isRenderInvalid(itemStack, displayContext)) return;
         if (ShadowDrop.guiRenderDepth > 0) {
@@ -197,45 +190,59 @@ public class ItemRendererMixin {
     // Returns whether the bottom right corner of the given window position has valid slot corner color
     @Unique
     private boolean shadowdrop$isInSlot(int x, int y, int z) {
-        // Get actual screen position to read bottom-right corner pixel
-        Window window = minecraft.getWindow();
-        int scale = (int) window.getGuiScale();
-        int brX = (x + 16) * scale - 1;
-        int brY = window.getHeight() - ((y + 16) * scale + 1);
+        // Slot detection compares the live pixel against the GUI background
+        // Without that capture there's nothing to compare to, so skip the readback
+        ByteBuffer initBuffer = ShadowDrop.guiInitRenderBuffer;
+        if (initBuffer == null) return false;
 
         // Check cache for if current pixel has already been checked
         for (CachedPixel p : shadowdrop$cachedPixels) {
             if (x == p.x() && y == p.y() && z == p.z()) return p.isSlotCorner();
         }
 
+        // Get actual screen position to read bottom-right corner pixel
+        Window window = minecraft.getWindow();
+        int scale = (int) window.getGuiScale();
+        int width = window.getWidth();
+        int height = window.getHeight();
+        int brX = (x + 16) * scale - 1;
+        int brY = height - ((y + 16) * scale + 1);
+        int i = (brY * width + brX + 1) * 4;
+
+        // Only probe when the 2x2 read and the capture lookup both sit fully inside the framebuffer
+        boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height && i >= 0 && i + 2 < initBuffer.capacity() && initBuffer.capacity() >= width * height * 4;
+
         boolean isSlotCorner = false;
-        try
-        {
-            // Read screen pixels for slot
-            ByteBuffer buffer = BufferUtils.createByteBuffer(16);
-            GL11.glReadPixels(brX, brY, 2, 2, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buffer);
+        if (inBounds) {
+            try {
+                // Read screen pixels for slot
+                ByteBuffer buffer = shadowdrop$pixelBuffer;
+                PixelReader.read(brX, brY, 2, 2, buffer);
 
-            // Outer pixel color
-            int r1 = buffer.get(4) & 0xFF;
-            int g1 = buffer.get(5) & 0xFF;
-            int b1 = buffer.get(6) & 0xFF;
-            // Inner pixel color
-            int r2 = buffer.get(8) & 0xFF;
-            int g2 = buffer.get(9) & 0xFF;
-            int b2 = buffer.get(10) & 0xFF;
-            // GUI initial render outer pixel color
-            int i = (brY * window.getWidth() + brX + 1) * 4;
-            int r3 = ShadowDrop.guiInitRenderBuffer.get(i) & 0xFF;
-            int g3 = ShadowDrop.guiInitRenderBuffer.get(i + 1) & 0xFF;
-            int b3 = ShadowDrop.guiInitRenderBuffer.get(i + 2) & 0xFF;
+                // Outer pixel color
+                int r1 = buffer.get(4) & 0xFF;
+                int g1 = buffer.get(5) & 0xFF;
+                int b1 = buffer.get(6) & 0xFF;
+                // Inner pixel color
+                int r2 = buffer.get(8) & 0xFF;
+                int g2 = buffer.get(9) & 0xFF;
+                int b2 = buffer.get(10) & 0xFF;
+                // GUI initial render outer pixel color
+                int r3 = initBuffer.get(i) & 0xFF;
+                int g3 = initBuffer.get(i + 1) & 0xFF;
+                int b3 = initBuffer.get(i + 2) & 0xFF;
 
-            // Assume slot corner if outer pixel is different to inner pixel, and is over gui background
-            boolean onGuiBackground = !(r1 == r3 && g1 == g3 && b1 == b3);
-            isSlotCorner = onGuiBackground && r1 != r2 && g1 != g2 && b1 != b2;
+                // Assume slot corner if outer pixel is different to inner pixel, and is over gui background
+                boolean onGuiBackground = !(r1 == r3 && g1 == g3 && b1 == b3);
+                isSlotCorner = onGuiBackground && r1 != r2 && g1 != g2 && b1 != b2;
 
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Cache failures too, so a position that can't be probed doesn't read back every frame
+        if (shadowdrop$cachedPixels.size() < shadowdrop$MAX_CACHED_PIXELS) {
             shadowdrop$cachedPixels.add(new CachedPixel(x, y, z, isSlotCorner));
-
-        } catch (Exception ignored) {
         }
 
         return isSlotCorner;
