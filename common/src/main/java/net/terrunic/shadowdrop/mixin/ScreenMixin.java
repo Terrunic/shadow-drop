@@ -28,7 +28,7 @@ public class ScreenMixin {
 
     // Track current GUI pixels on initial render (before elements added)
     @Inject(method = "renderBackground", at = @At("TAIL"))
-    public void shadowdrop$onRenderBackground(GuiGraphics guiGraphics, CallbackInfo ci) {
+    public void shadowdrop$onRenderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         if (ShadowDrop.guiInitRenderBuffer != null || !ShadowDropConfig.CLIENT.modEnabled) return;
 
         Window window = Minecraft.getInstance().getWindow();
