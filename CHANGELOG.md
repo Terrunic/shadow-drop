@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-08-01
+
+### Fixed
+
+- Fixed issues with items that use custom renderers.
+
 ## [2.0.1] - 2026-08-01
 
 ### Fixed
@@ -23,9 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Merged with the Shadows Redropped fork by evanbones!
-    - Greatly improved performance through batched rendering!
-    - Simplified config screen using YACL integration
-    - EMI and ImmediatelyFast batched rendering support
+  - Greatly improved performance through batched rendering!
+  - Simplified config screen using YACL integration
+  - EMI and ImmediatelyFast batched rendering support
 - Standard 16x16 item slots are now detected automatically without config
 
 ### Removed
@@ -136,13 +142,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Custom config screen, accessible through the mods list
-    - Allows for previewing of specific items and control over certain contexts to show shadows in
-    - Provides warnings for certain config settings and known mod compatibility issues
-    - Feedback is appreciated!
+  - Allows for previewing of specific items and control over certain contexts to show shadows in
+  - Provides warnings for certain config settings and known mod compatibility issues
+  - Feedback is appreciated!
 - Context for GUIs with and without slots, allowing for control over items in places like the recipe book or JEI,
   without removing shadows in other places like the advancements screen
-    - This context is disabled by default for better performance, so the default mod config should be more
-      modpack-friendly
+  - This context is disabled by default for better performance, so the default mod config should be more
+    modpack-friendly
 - Direct support for JEI, EMI, and REI screens
 
 ### Changed
