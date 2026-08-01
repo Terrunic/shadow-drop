@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-08-01
+
+### Fixed
+
+- Fixed crash with Cloud Storage.
+- Fixed enchantment glint related crash.
+- Fixed stutter and hangs caused by slot detection.
+- Performance improvements.
+
 ## [2.0.0] - 2026-07-22
 
 ### Added
@@ -130,8 +139,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Allows for previewing of specific items and control over certain contexts to show shadows in
     - Provides warnings for certain config settings and known mod compatibility issues
     - Feedback is appreciated!
-- Context for GUIs with and without slots, allowing for control over items in places like the recipe book or JEI, without removing shadows in other places like the advancements screen
-    - This context is disabled by default for better performance, so the default mod config should be more modpack-friendly
+- Context for GUIs with and without slots, allowing for control over items in places like the recipe book or JEI,
+  without removing shadows in other places like the advancements screen
+    - This context is disabled by default for better performance, so the default mod config should be more
+      modpack-friendly
 - Direct support for JEI, EMI, and REI screens
 
 ### Changed
@@ -158,7 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Depth scaling of shadows, should improve compatibility with more modded GUIs
-- Items are now offset towards the camera to ensure space behind them for shadows, should also improve mod compatibility (toggleable with `offsetItems` config)
+- Items are now offset towards the camera to ensure space behind them for shadows, should also improve mod
+  compatibility (toggleable with `offsetItems` config)
 - Items configured as transparent now fully skip shadow rendering
 - Some small optimisations
 

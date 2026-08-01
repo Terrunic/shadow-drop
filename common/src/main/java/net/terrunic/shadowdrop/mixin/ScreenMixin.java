@@ -2,18 +2,19 @@ package net.terrunic.shadowdrop.mixin;
 
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
-import net.terrunic.shadowdrop.ShadowDrop;
-import net.terrunic.shadowdrop.ShadowDropConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
+import net.terrunic.shadowdrop.ShadowDrop;
+import net.terrunic.shadowdrop.ShadowDropConfig;
+import net.terrunic.shadowdrop.util.PixelReader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.nio.ByteBuffer;
 
 // Mixin to track screen changes and hovered item
 @Mixin(Screen.class)
@@ -25,17 +26,24 @@ public class ScreenMixin {
         ShadowDrop.guiInitRenderBuffer = null;
     }
 
-    // Track hovered item, and current GUI pixels on initial render (before elements added)
+    // Track current GUI pixels on initial render (before elements added)
+    @Inject(method = "renderBackground", at = @At("TAIL"))
+    public void shadowdrop$onRenderBackground(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (ShadowDrop.guiInitRenderBuffer != null || !ShadowDropConfig.CLIENT.modEnabled) return;
+
+        Window window = Minecraft.getInstance().getWindow();
+        int width = window.getWidth();
+        int height = window.getHeight();
+        if (width <= 0 || height <= 0) return;
+
+        ByteBuffer buffer = PixelReader.screenBuffer(width * height * 4);
+        PixelReader.read(0, 0, width, height, buffer);
+        ShadowDrop.guiInitRenderBuffer = buffer;
+    }
+
+    // Track hovered item
     @Inject(method = "render", at = @At("HEAD"))
     private void shadowdrop$onRender(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (ShadowDrop.guiInitRenderBuffer == null && ShadowDropConfig.CLIENT.modEnabled) {
-            Window window = Minecraft.getInstance().getWindow();
-            int width = window.getWidth();
-            int height = window.getHeight();
-            ShadowDrop.guiInitRenderBuffer = BufferUtils.createByteBuffer(width * height * 4);
-            GL11.glReadPixels(0, 0, width, height, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, ShadowDrop.guiInitRenderBuffer);
-        }
-
         Screen screen = (Screen) (Object) this;
         if (screen instanceof AbstractContainerScreen<?> containerScreen) {
             ShadowDrop.hoveredItem = containerScreen.hoveredSlot != null ? containerScreen.hoveredSlot.getItem() : ItemStack.EMPTY;
