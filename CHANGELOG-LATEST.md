@@ -1,1 +1,1 @@
-- Initial 26.1 release.
+- Ported to 26.2 (@DaPiCu).
