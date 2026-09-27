@@ -158,10 +158,7 @@ public class ItemRendererMixin {
 
         try {
             ((ItemRenderer) (Object) this).render(itemStack, displayContext, leftHand, shadowPoseStack, shadowBuffer, combinedLight, combinedOverlay, model);
-
-            if (immediate != null) {
-                shadowBuffer.endShadowBatches(immediate);
-            }
+            shadowBuffer.endShadowBatches();
         } finally {
             if (isCropped) {
                 guiGraphics.disableScissor();

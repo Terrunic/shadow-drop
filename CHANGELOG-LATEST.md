@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with items that use custom renderers.
+- Fixed Iron's Arms and Artifice crash.
