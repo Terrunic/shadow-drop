@@ -1,3 +1,4 @@
 ### Fixed
 
-- Fixed Iron's Arms and Artifice crash.
+- Fixed shadows disappearing from the EMI index.
+- Performance improvements.

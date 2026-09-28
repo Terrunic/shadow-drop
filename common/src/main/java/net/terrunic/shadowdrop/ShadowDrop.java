@@ -6,8 +6,6 @@ import net.terrunic.shadowdrop.platform.Services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
-
 public class ShadowDrop {
     public static final String MOD_ID = "shadowdrop";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -26,8 +24,6 @@ public class ShadowDrop {
     public static Object currentGuiGraphics = null;
     // Tracker for current GUI render depth
     public static int guiRenderDepth = 0;
-    // Tracker for current GUI pixels on initial render (before elements added)
-    public static ByteBuffer guiInitRenderBuffer = null;
 
     public static void init() {
         ShadowDropConfig.load();

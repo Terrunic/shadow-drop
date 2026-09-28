@@ -64,6 +64,11 @@ public class ShadowBufferSource implements MultiBufferSource {
             }
         }
         RenderType targetType = ShadowRenderType.get(texture);
+
+        if (!(delegate instanceof MultiBufferSource.BufferSource)) {
+            return Services.PLATFORM.wrapVertexConsumer(delegate.getBuffer(targetType), r, g, b, a);
+        }
+
         BufferBuilder builder = startedBuilders.computeIfAbsent(targetType, t -> new BufferBuilder(
                 BYTE_BUFFERS.computeIfAbsent(t, k -> new ByteBufferBuilder(k.bufferSize())), t.mode(), t.format()));
 

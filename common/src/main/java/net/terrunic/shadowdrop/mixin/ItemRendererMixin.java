@@ -2,23 +2,19 @@ package net.terrunic.shadowdrop.mixin;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.terrunic.shadowdrop.ShadowDrop;
 import net.terrunic.shadowdrop.ShadowDropConfig;
 import net.terrunic.shadowdrop.render.ShadowBufferSource;
-import net.terrunic.shadowdrop.util.CachedPixel;
+import net.terrunic.shadowdrop.util.ItemMatcher;
 import net.terrunic.shadowdrop.util.PixelReader;
 import net.terrunic.shadowdrop.util.ShadowContext;
 import org.joml.Matrix3f;
@@ -34,8 +30,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 // Mixin to render drop shadows under items in GUI contexts
 @Mixin(value = ItemRenderer.class, priority = 500)
@@ -44,11 +38,19 @@ public class ItemRendererMixin {
     @Unique
     private static final int shadowdrop$MAX_CACHED_PIXELS = 4096;
     @Unique
-    private static final List<CachedPixel> shadowdrop$cachedPixels = new ArrayList<>();
+    private static final Long2BooleanOpenHashMap shadowdrop$cachedPixels = new Long2BooleanOpenHashMap();
     @Unique
     private static final ByteBuffer shadowdrop$pixelBuffer = BufferUtils.createByteBuffer(16);
     @Unique
+    private static final ByteBuffer shadowdrop$capturePixelBuffer = BufferUtils.createByteBuffer(4);
+    @Unique
     private final static Matrix4f shadowdrop$screenPose = new Matrix4f();
+    @Unique
+    private static final PoseStack shadowdrop$shadowPoseStack = new PoseStack();
+    @Unique
+    private static ItemMatcher shadowdrop$transparentMatcher = null;
+    @Unique
+    private static ItemMatcher shadowdrop$translucentMatcher = null;
     @Unique
     private static int[] shadowdrop$cachedShadowColor = {0, 0, 0};
     @Unique
@@ -75,20 +77,22 @@ public class ItemRendererMixin {
         }
 
         // Cancel if marked as transparent
-        if (shadowdrop$matchesItemOrTag(itemStack, ShadowDropConfig.CLIENT.transparentItems)) return;
+        shadowdrop$transparentMatcher = ItemMatcher.of(shadowdrop$transparentMatcher, ShadowDropConfig.CLIENT.transparentItems);
+        if (shadowdrop$transparentMatcher.matches(itemStack)) return;
+
+        // Z scale of the item pose
+        Matrix4f itemMatrix = poseStack.last().pose();
+        float scaleZ = Vector3f.length(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()) / 16f;
 
         // Offset item to ensure space behind for shadow
         if (ShadowDropConfig.CLIENT.offsetItems) {
-            Matrix4f itemMatrix = poseStack.last().pose();
-            float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
-            poseStack.last().pose().translateLocal(0, 0, 32 * scaleZ);
+            itemMatrix.translateLocal(0, 0, 32 * scaleZ);
         }
 
         // Get shadow context & crop state
         ShadowContext shadowContext = ShadowContext.ELSEWHERE;
-        shadowdrop$screenPose.set(poseStack.last().pose());
+        shadowdrop$screenPose.set(itemMatrix);
         shadowdrop$screenNormal.set(poseStack.last().normal());
-        Matrix4f itemMatrix = poseStack.last().pose();
         GuiGraphics guiGraphics = (GuiGraphics) ShadowDrop.currentGuiGraphics;
 
         if (ShadowDrop.isHotbarRendering) {
@@ -123,8 +127,6 @@ public class ItemRendererMixin {
         // Begin shadow rendering
         shadowdrop$isRenderingShadow = true;
 
-        float scaleZ = new Vector3f(itemMatrix.m02(), itemMatrix.m12(), itemMatrix.m22()).length() / 16f;
-
         // Render copy of item with wrapped buffer source to draw it as shadow
         int[] shadowColor = shadowdrop$getShadowColor();
         float r = shadowColor[0] / 255f;
@@ -148,7 +150,8 @@ public class ItemRendererMixin {
             guiGraphics.enableScissor(slotX, slotY, slotX + 16, slotY + 16);
         }
 
-        PoseStack shadowPoseStack = new PoseStack();
+        // Shared pose stack is safe to reuse as shadow rendering never nests
+        PoseStack shadowPoseStack = shadowdrop$shadowPoseStack;
         Matrix4f shadowMatrix = shadowPoseStack.last().pose();
         shadowMatrix.set(shadowdrop$screenPose);
         shadowPoseStack.last().normal().set(shadowdrop$screenNormal);
@@ -185,14 +188,11 @@ public class ItemRendererMixin {
     @Unique
     private boolean shadowdrop$isInSlot(int x, int y, int z) {
         // Slot detection compares the live pixel against the GUI background
-        // Without that capture there's nothing to compare to, so skip the readback
-        ByteBuffer initBuffer = ShadowDrop.guiInitRenderBuffer;
-        if (initBuffer == null) return false;
+        if (minecraft.screen == null || !PixelReader.hasCapture()) return false;
 
         // Check cache for if current pixel has already been checked
-        for (CachedPixel p : shadowdrop$cachedPixels) {
-            if (x == p.x() && y == p.y() && z == p.z()) return p.isSlotCorner();
-        }
+        long key = ((long) (x & 0x1FFFFF) << 42) | ((long) (y & 0x1FFFFF) << 21) | (z & 0x1FFFFF);
+        if (shadowdrop$cachedPixels.containsKey(key)) return shadowdrop$cachedPixels.get(key);
 
         // Get actual screen position to read bottom-right corner pixel
         Window window = minecraft.getWindow();
@@ -201,17 +201,17 @@ public class ItemRendererMixin {
         int height = window.getHeight();
         int brX = (x + 16) * scale - 1;
         int brY = height - ((y + 16) * scale + 1);
-        int i = (brY * width + brX + 1) * 4;
 
-        // Only probe when the 2x2 read and the capture lookup both sit fully inside the framebuffer
-        boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height && i >= 0 && i + 2 < initBuffer.capacity() && initBuffer.capacity() >= width * height * 4;
+        // Only probe when the 2x2 read sits fully inside the framebuffer and the capture matches it
+        boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height && PixelReader.captureMatches(width, height);
 
         boolean isSlotCorner = false;
         if (inBounds) {
             try {
                 // Read screen pixels for slot
                 ByteBuffer buffer = shadowdrop$pixelBuffer;
-                PixelReader.read(brX, brY, 2, 2, buffer);
+                ByteBuffer initBuffer = shadowdrop$capturePixelBuffer;
+                PixelReader.read(brX, brY, 2, 2, buffer, brX + 1, brY, 1, 1, initBuffer);
 
                 // Outer pixel color
                 int r1 = buffer.get(4) & 0xFF;
@@ -222,9 +222,9 @@ public class ItemRendererMixin {
                 int g2 = buffer.get(9) & 0xFF;
                 int b2 = buffer.get(10) & 0xFF;
                 // GUI initial render outer pixel color
-                int r3 = initBuffer.get(i) & 0xFF;
-                int g3 = initBuffer.get(i + 1) & 0xFF;
-                int b3 = initBuffer.get(i + 2) & 0xFF;
+                int r3 = initBuffer.get(0) & 0xFF;
+                int g3 = initBuffer.get(1) & 0xFF;
+                int b3 = initBuffer.get(2) & 0xFF;
 
                 // Assume slot corner if outer pixel is different to inner pixel, and is over gui background
                 boolean onGuiBackground = !(r1 == r3 && g1 == g3 && b1 == b3);
@@ -235,9 +235,10 @@ public class ItemRendererMixin {
         }
 
         // Cache failures too, so a position that can't be probed doesn't read back every frame
-        if (shadowdrop$cachedPixels.size() < shadowdrop$MAX_CACHED_PIXELS) {
-            shadowdrop$cachedPixels.add(new CachedPixel(x, y, z, isSlotCorner));
+        if (shadowdrop$cachedPixels.size() >= shadowdrop$MAX_CACHED_PIXELS) {
+            shadowdrop$cachedPixels.clear();
         }
+        shadowdrop$cachedPixels.put(key, isSlotCorner);
 
         return isSlotCorner;
     }
@@ -259,27 +260,10 @@ public class ItemRendererMixin {
     @Unique
     private int shadowdrop$getShadowAlpha(ItemStack stack) {
         int alpha = ShadowDropConfig.CLIENT.shadowAlpha;
-        if (shadowdrop$matchesItemOrTag(stack, ShadowDropConfig.CLIENT.translucentItems)) return alpha / 2;
+        shadowdrop$translucentMatcher = ItemMatcher.of(shadowdrop$translucentMatcher, ShadowDropConfig.CLIENT.translucentItems);
+        if (shadowdrop$translucentMatcher.matches(stack)) return alpha / 2;
 
         return alpha;
-    }
-
-    // If item matches list of ids or tags
-    @Unique
-    private boolean shadowdrop$matchesItemOrTag(ItemStack stack, List<String> entries) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-
-        for (String entry : entries) {
-            // Entries starting with # are tag ids, otherwise are item ids
-            if (entry.startsWith("#")) {
-                String[] tagParts = entry.substring(1).split(":");
-                if (tagParts.length == 2) {
-                    TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(tagParts[0], tagParts[1]));
-                    if (stack.is(tag)) return true;
-                }
-            } else if (itemId.toString().equals(entry)) return true;
-        }
-        return false;
     }
 
     // Parse hex color string to RGB array

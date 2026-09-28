@@ -14,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.nio.ByteBuffer;
-
 // Mixin to track screen changes and hovered item
 @Mixin(Screen.class)
 public class ScreenMixin {
@@ -23,22 +21,16 @@ public class ScreenMixin {
     @Inject(method = "init(Lnet/minecraft/client/Minecraft;II)V", at = @At("HEAD"))
     private void shadowdrop$onInit(CallbackInfo ci) {
         ShadowDrop.shouldRefresh = true;
-        ShadowDrop.guiInitRenderBuffer = null;
+        PixelReader.invalidateCapture();
     }
 
     // Track current GUI pixels on initial render (before elements added)
     @Inject(method = "renderBackground", at = @At("TAIL"))
     public void shadowdrop$onRenderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
-        if (ShadowDrop.guiInitRenderBuffer != null || !ShadowDropConfig.CLIENT.modEnabled) return;
+        if (PixelReader.hasCapture() || !ShadowDropConfig.CLIENT.modEnabled) return;
 
         Window window = Minecraft.getInstance().getWindow();
-        int width = window.getWidth();
-        int height = window.getHeight();
-        if (width <= 0 || height <= 0) return;
-
-        ByteBuffer buffer = PixelReader.screenBuffer(width * height * 4);
-        PixelReader.read(0, 0, width, height, buffer);
-        ShadowDrop.guiInitRenderBuffer = buffer;
+        PixelReader.capture(window.getWidth(), window.getHeight());
     }
 
     // Track hovered item
