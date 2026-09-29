@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.terrunic.shadowdrop.mixin",
+  "compatibilityLevel": "JAVA_${java_version}",
+  "client": [
+    "GuiGraphicsMixin",
+    "GuiItemRenderStateMixin",
+    "GuiMixin",
+    "GuiRendererMixin",
+    "accessor.AbstractContainerScreenAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

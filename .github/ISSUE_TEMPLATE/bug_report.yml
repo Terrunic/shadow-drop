@@ -35,9 +35,11 @@ body:
       label: Game Version
       description: The Minecraft version you were using to run the mod
       options:
+        - "1.20.1"
         - "1.21.1"
         - "26.1"
         - "26.2"
+        - "26.3"
     validations:
       required: true
   - type: input
@@ -52,6 +54,7 @@ body:
       label: Mod Loader
       description: Which mod loader were you using?
       options:
+        - "Forge"
         - "Fabric"
         - "NeoForge"
     validations:

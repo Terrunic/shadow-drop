@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${version}",
+  "name": "${mod_name}",
+  "description": "${description}",
+  "authors": [
+    "${mod_author}"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Terrunic/shadow-drop",
+    "sources": "https://github.com/Terrunic/shadow-drop"
+  },
+  "license": "${license}",
+  "icon": "icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.terrunic.shadowdrop.fabric.FabricShadowDrop"
+    ],
+    "modmenu": [
+      "net.terrunic.shadowdrop.fabric.compat.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json"
+  ],
+  "accessWidener": "${access_widener}",
+  "depends": {
+    "fabricloader": ">=0.14",
+    "fabric-api": "*",
+    "minecraft": "${minecraft}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {
+    "yet_another_config_lib_v3": ">=${yacl_version}"
+  }
+}
