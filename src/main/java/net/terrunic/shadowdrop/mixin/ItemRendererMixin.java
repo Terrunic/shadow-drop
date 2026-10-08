@@ -95,7 +95,7 @@ public class ItemRendererMixin {
             }
         } else if (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack)) {
             shadowContext = ShadowContext.CURSOR;
-        } else if (shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32())) {
+        } else if (shadowdrop$isSlotSized(itemMatrix) && shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32())) {
             shadowContext = ShadowContext.SLOT;
         }
 
@@ -175,6 +175,15 @@ public class ItemRendererMixin {
         return shadowdrop$isRenderingShadow || !ShadowDropConfig.CLIENT.modEnabled || ShadowDrop.isLevelRendering || displayContext != ItemDisplayContext.GUI || itemStack.isEmpty();
     }
 
+    // Whether the item is drawn at the normal 16px GUI size, so slot detection can line up with the screen
+    // (screens scaled by animation mods move every frame, and would otherwise read back pixels per item per frame)
+    @Unique
+    private static boolean shadowdrop$isSlotSized(Matrix4f itemMatrix) {
+        float scaleX = (float) Math.sqrt(itemMatrix.m00() * itemMatrix.m00() + itemMatrix.m10() * itemMatrix.m10() + itemMatrix.m20() * itemMatrix.m20());
+        float scaleY = (float) Math.sqrt(itemMatrix.m01() * itemMatrix.m01() + itemMatrix.m11() * itemMatrix.m11() + itemMatrix.m21() * itemMatrix.m21());
+        return Math.abs(scaleX - 16f) < 0.01f && Math.abs(scaleY - 16f) < 0.01f;
+    }
+
     // Returns whether the bottom right corner of the given window position has valid slot corner color
     @Unique
     private boolean shadowdrop$isInSlot(int x, int y, int z) {
@@ -195,6 +204,9 @@ public class ItemRendererMixin {
 
         // Only probe when the 2x2 read sits fully inside the framebuffer and the capture matches it
         boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height && PixelReader.captureMatches(width, height);
+
+        // Out of reads this frame
+        if (inBounds && !PixelReader.tryConsumeRead()) return false;
 
         boolean isSlotCorner = false;
         if (inBounds) {

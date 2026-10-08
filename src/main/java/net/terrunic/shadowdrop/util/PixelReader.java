@@ -14,8 +14,10 @@ import java.nio.ByteBuffer;
 
 // Helper for capturing and reading back pixels from the framebuffer
 public final class PixelReader {
+    private static final int MAX_READS_PER_FRAME = 16;
     private static TextureTarget capture = null;
     private static boolean hasCapture = false;
+    private static int frameReads = 0;
 
     private PixelReader() {
     }
@@ -26,6 +28,17 @@ public final class PixelReader {
 
     public static void invalidateCapture() {
         hasCapture = false;
+    }
+
+    public static void startFrame() {
+        frameReads = 0;
+    }
+
+    // Take one read from this frame's budget, returning false if it's spent
+    public static boolean tryConsumeRead() {
+        if (frameReads >= MAX_READS_PER_FRAME) return false;
+        frameReads++;
+        return true;
     }
 
     // Copy the currently bound framebuffer into the capture target

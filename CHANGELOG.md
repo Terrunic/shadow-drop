@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ported recent 1.21 features to 26.x.
 - Switched to a unified 1.20/1.21/26.x build source using stonecutter.
 
+### Fixed
+
+- Fixed large FPS drops in GUIs when used alongside GUI animation mods (e.g. EaseGUI, Subtle GUI Tweaks), especially with JEI.
+
 ## [2.0.4] - 2026-09-27
 
 ### Fixed
