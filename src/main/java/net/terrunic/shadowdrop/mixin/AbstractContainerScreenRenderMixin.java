@@ -18,11 +18,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenRenderMixin {
+    //? if >=1.21 {
+    // Track current GUI pixels behind the container background
+    @Inject(method = "renderBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/AbstractContainerScreen;renderBg(Lnet/minecraft/client/gui/GuiGraphics;FII)V"))
+    private void shadowdrop$onRenderBg(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        if (PixelReader.hasBackgroundCapture() || !ShadowDropConfig.CLIENT.modEnabled) return;
+
+        Window window = Minecraft.getInstance().getWindow();
+        PixelReader.capture(window.getWidth(), window.getHeight());
+    }
+    //?}
+
     @Inject(method = "render", at = @At("HEAD"))
     private void shadowdrop$onRender(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        // Fallback for screens that skip the background, replaced once the background is captured
         if (!PixelReader.hasCapture() && ShadowDropConfig.CLIENT.modEnabled) {
             Window window = Minecraft.getInstance().getWindow();
-            PixelReader.capture(window.getWidth(), window.getHeight());
+            PixelReader.captureFallback(window.getWidth(), window.getHeight());
         }
 
         Slot hoveredSlot = ((AbstractContainerScreenAccessor) this).getHoveredSlot();

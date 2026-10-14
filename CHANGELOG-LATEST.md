@@ -1,3 +1,4 @@
 ### Fixed
 
-- Fixed FPS drops in GUIs when used alongside GUI animation mods (e.g. EaseGUI, Subtle GUI Tweaks).
+- Fixed incompatibility with Advancement Plaques.
+- Fixed EMI slots being cropped with Modulation.

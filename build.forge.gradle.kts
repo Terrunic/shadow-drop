@@ -111,6 +111,12 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
     compileOnly("org.jetbrains:annotations:26.0.2-1")
 
+    // MixinExtras
+    annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.4")
+    compileOnly("io.github.llamalad7:mixinextras-common:0.5.4")
+    implementation("io.github.llamalad7:mixinextras-forge:0.5.4")
+    jarJar("io.github.llamalad7:mixinextras-forge:0.5.4")
+
     // YACL
     modCompileOnly("dev.isxander:yet-another-config-lib:${dep("yacl")}")
     modRuntimeOnly("dev.isxander:yet-another-config-lib:${dep("yacl")}")

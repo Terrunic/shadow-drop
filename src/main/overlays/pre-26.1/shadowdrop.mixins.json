@@ -11,6 +11,7 @@
     "GuiMixin",
     "ItemRendererMixin",
     "ScreenMixin",
+    "ToastComponentMixin",
     "accessor.AbstractContainerScreenAccessor",
     "accessor.CompositeRenderTypeAccessor",
     "accessor.CompositeStateAccessor",
@@ -19,7 +20,8 @@
     "accessor.RenderTypeAccessor"
   ],
   "mixins": [
-    "EmiRecipeScreenMixin"
+    "EmiRecipeScreenMixin",
+    "EmiScreenManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

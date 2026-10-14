@@ -27,6 +27,13 @@ public class ScreenMixin {
         PixelReader.invalidateCapture();
     }
 
+    // Track window resizes, which rebuild the screen
+    @Inject(method = "resize", at = @At("HEAD"))
+    private void shadowdrop$onResize(CallbackInfo ci) {
+        ShadowDrop.shouldRefresh = true;
+        PixelReader.invalidateCapture();
+    }
+
     // Track current GUI pixels on initial render (before elements added)
     @Inject(method = "renderBackground", at = @At("TAIL"))
             //? if >=1.21 {
@@ -34,7 +41,7 @@ public class ScreenMixin {
         //?} else {
         /*public void shadowdrop$onRenderBackground(GuiGraphics guiGraphics, CallbackInfo ci) {
          *///?}
-        if (PixelReader.hasCapture() || !ShadowDropConfig.CLIENT.modEnabled) return;
+        if (PixelReader.hasBackgroundCapture() || !ShadowDropConfig.CLIENT.modEnabled) return;
 
         Window window = Minecraft.getInstance().getWindow();
         PixelReader.capture(window.getWidth(), window.getHeight());

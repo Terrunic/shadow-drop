@@ -23,9 +23,15 @@ public class ShadowDrop {
     public static boolean isLevelRendering = false;
     // Tracker for if hotbar is rendering instead of a GUI
     public static boolean isHotbarRendering = false;
+    // Tracker for if toasts are rendering
+    public static boolean isToastRendering = false;
+    // Tracker for if EMI is rendering its sidebars
+    public static boolean isEmiSidebarRendering = false;
+    // Tracker for if EMI is rendering a stack dragged under the cursor
+    public static boolean isEmiDragRendering = false;
     // Tracker for current active GuiGraphics
     public static Object currentGuiGraphics = null;
-    // Tracker for current GUI render depth
+    // Tracker for how many item renders are currently nested
     public static int guiRenderDepth = 0;
 
     public static void init() {

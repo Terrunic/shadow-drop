@@ -27,7 +27,7 @@ public class ShadowDropMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith("EmiRecipeScreenMixin")) {
+        if (mixinClassName.endsWith("EmiRecipeScreenMixin") || mixinClassName.endsWith("EmiScreenManagerMixin")) {
             return isEmiLoaded;
         }
         return true;

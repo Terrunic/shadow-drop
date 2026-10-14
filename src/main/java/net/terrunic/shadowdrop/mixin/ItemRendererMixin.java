@@ -1,6 +1,8 @@
 package net.terrunic.shadowdrop.mixin;
 
 //? if <26.1 {
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
@@ -57,10 +59,22 @@ public class ItemRendererMixin {
     @Shadow
     private Minecraft minecraft;
 
+    // Track item render nesting around the whole method, so it unwinds even when another mod cancels the render
+    @WrapMethod(method = "render(Lnet/minecraft/world/item/ItemStack;" + "Lnet/minecraft/world/item/ItemDisplayContext;" + "ZLcom/mojang/blaze3d/vertex/PoseStack;" + "Lnet/minecraft/client/renderer/MultiBufferSource;" + "IILnet/minecraft/client/resources/model/BakedModel;)V")
+    private void shadowdrop$trackRenderDepth(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, Operation<Void> original) {
+        ShadowDrop.guiRenderDepth++;
+        try {
+            original.call(itemStack, displayContext, leftHand, poseStack, bufferSource, combinedLight, combinedOverlay, model);
+        } finally {
+            ShadowDrop.guiRenderDepth--;
+        }
+    }
+
     @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" + "Lnet/minecraft/world/item/ItemDisplayContext;" + "ZLcom/mojang/blaze3d/vertex/PoseStack;" + "Lnet/minecraft/client/renderer/MultiBufferSource;" + "IILnet/minecraft/client/resources/model/BakedModel;)V", at = @At("HEAD"))
     private void shadowdrop$renderShadow(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
         if (shadowdrop$isRenderInvalid(itemStack, displayContext)) return;
-        if (ShadowDrop.guiRenderDepth++ > 0) return;
+        // Only the outermost item render gets a shadow
+        if (ShadowDrop.guiRenderDepth > 1) return;
 
         // Refresh pixel cache if called elsewhere
         if (ShadowDrop.shouldRefresh) {
@@ -88,6 +102,10 @@ public class ItemRendererMixin {
 
         if (ShadowDrop.isHotbarRendering) {
             shadowContext = ShadowContext.HOTBAR;
+        } else if (ShadowDrop.isEmiDragRendering) {
+            shadowContext = ShadowContext.CURSOR;
+        } else if (ShadowDrop.isToastRendering || ShadowDrop.isEmiSidebarRendering) {
+            shadowContext = ShadowContext.ELSEWHERE;
         } else if (ShadowDrop.hoveredItem == itemStack) {
             if (!ShadowDrop.hoveredItemRendered) {
                 ShadowDrop.hoveredItemRendered = true;
@@ -161,14 +179,6 @@ public class ItemRendererMixin {
         }
     }
 
-    @Inject(method = "render(Lnet/minecraft/world/item/ItemStack;" + "Lnet/minecraft/world/item/ItemDisplayContext;" + "ZLcom/mojang/blaze3d/vertex/PoseStack;" + "Lnet/minecraft/client/renderer/MultiBufferSource;" + "IILnet/minecraft/client/resources/model/BakedModel;)V", at = @At("RETURN"))
-    private void shadowdrop$onRenderReturn(ItemStack itemStack, ItemDisplayContext displayContext, boolean leftHand, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model, CallbackInfo ci) {
-        if (shadowdrop$isRenderInvalid(itemStack, displayContext)) return;
-        if (ShadowDrop.guiRenderDepth > 0) {
-            ShadowDrop.guiRenderDepth = 0;
-        }
-    }
-
     // If item & display context is immediately invalid render state for shadows (cheap)
     @Unique
     private boolean shadowdrop$isRenderInvalid(ItemStack itemStack, ItemDisplayContext displayContext) {
@@ -202,8 +212,15 @@ public class ItemRendererMixin {
         int brX = (x + 16) * scale - 1;
         int brY = height - ((y + 16) * scale + 1);
 
-        // Only probe when the 2x2 read sits fully inside the framebuffer and the capture matches it
-        boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height && PixelReader.captureMatches(width, height);
+        // A capture from before the framebuffer changed size can't be compared against, so take a new one next frame
+        if (!PixelReader.captureMatches(width, height)) {
+            PixelReader.invalidateCapture();
+            ShadowDrop.shouldRefresh = true;
+            return false;
+        }
+
+        // Only probe when the 2x2 read sits fully inside the framebuffer
+        boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height;
 
         // Out of reads this frame
         if (inBounds && !PixelReader.tryConsumeRead()) return false;
