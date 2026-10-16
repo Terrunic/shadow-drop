@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(targets = "dev.emi.emi.screen.RecipeScreen")
 public class EmiRecipeScreenMixin {
-    @Inject(method = "render", at = @At("HEAD"), remap = false)
+    @Inject(method = "render", at = @At("HEAD"))
     private void shadowdrop$onRender(GuiGraphics raw, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (!PixelReader.hasCapture() && ShadowDropConfig.CLIENT.modEnabled) {
             Window window = Minecraft.getInstance().getWindow();

@@ -1,4 +1,3 @@
 ### Fixed
 
-- Fixed incompatibility with Advancement Plaques.
-- Fixed EMI slots being cropped with Modulation.
+- Fixed EMI crash on certain versions.
