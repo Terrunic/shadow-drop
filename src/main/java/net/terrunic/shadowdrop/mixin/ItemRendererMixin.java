@@ -113,8 +113,10 @@ public class ItemRendererMixin {
             }
         } else if (minecraft.player != null && minecraft.player.containerMenu.getCarried().equals(itemStack)) {
             shadowContext = ShadowContext.CURSOR;
-        } else if (shadowdrop$isSlotSized(itemMatrix) && shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32())) {
-            shadowContext = ShadowContext.SLOT;
+        } else if (shadowdrop$isSlotSized(itemMatrix)) {
+            // Items still waiting on a probe are treated as slotted
+            Boolean inSlot = shadowdrop$isInSlot((int) itemMatrix.m30() - 8, (int) itemMatrix.m31() - 8, (int) itemMatrix.m32());
+            if (inSlot == null || inSlot) shadowContext = ShadowContext.SLOT;
         }
 
         boolean shouldRender = switch (shadowContext) {
@@ -194,9 +196,9 @@ public class ItemRendererMixin {
         return Math.abs(scaleX - 16f) < 0.01f && Math.abs(scaleY - 16f) < 0.01f;
     }
 
-    // Returns whether the bottom right corner of the given window position has valid slot corner color
+    // Returns whether the bottom right corner of the given window position has valid slot corner color, or null if this frame's reads are spent
     @Unique
-    private boolean shadowdrop$isInSlot(int x, int y, int z) {
+    private Boolean shadowdrop$isInSlot(int x, int y, int z) {
         // Slot detection compares the live pixel against the GUI background
         if (minecraft.screen == null || !PixelReader.hasCapture()) return false;
 
@@ -223,7 +225,7 @@ public class ItemRendererMixin {
         boolean inBounds = brX >= 0 && brY >= 0 && brX + 2 <= width && brY + 2 <= height;
 
         // Out of reads this frame
-        if (inBounds && !PixelReader.tryConsumeRead()) return false;
+        if (inBounds && !PixelReader.tryConsumeRead()) return null;
 
         boolean isSlotCorner = false;
         if (inBounds) {

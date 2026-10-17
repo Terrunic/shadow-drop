@@ -16,8 +16,8 @@ public class EmiScreenManagerMixin {
         ShadowDrop.isEmiSidebarRendering = true;
     }
 
-    // Track sidebar end rendering
-    @Inject(method = "render", at = @At("TAIL"), remap = false)
+    // Track sidebar end rendering, on every return since render bails out early while EMI is hidden
+    @Inject(method = "render", at = @At("RETURN"), remap = false)
     private static void shadowdrop$endRenderSidebars(CallbackInfo ci) {
         ShadowDrop.isEmiSidebarRendering = false;
     }
@@ -29,7 +29,7 @@ public class EmiScreenManagerMixin {
     }
 
     // Track dragged stack end rendering
-    @Inject(method = "renderDraggedStack", at = @At("TAIL"), remap = false)
+    @Inject(method = "renderDraggedStack", at = @At("RETURN"), remap = false)
     private static void shadowdrop$endRenderDraggedStack(CallbackInfo ci) {
         ShadowDrop.isEmiDragRendering = false;
     }

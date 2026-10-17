@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed EMI crash on certain versions.
+- Improved EMI shadow cropping integration.
